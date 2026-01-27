@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Law Firm Analytics - Demo Comparison</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #1f2937;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .header p {
+      font-size: 1.25rem;
+      opacity: 0.95;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .intro-box {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .intro-box h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .intro-box p {
+      font-size: 1rem;
+      line-height: 1.8;
+      opacity: 0.9;
+    }
+
+    .demos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .demo-card {
+      background: white;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .demo-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .demo-preview {
+      height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-preview::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .demo-card:hover .demo-preview::before {
+      opacity: 1;
+    }
+
+    .demo-preview.perplexity {
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    }
+
+    .demo-preview.linear {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    }
+
+    .demo-preview.stripe {
+      background: linear-gradient(135deg, #635bff 0%, #0ac27c 100%);
+    }
+
+    .demo-preview.apple {
+      background: linear-gradient(135deg, #f5f5f7 0%, #e5e5e7 100%);
+      color: #1d1d1f;
+    }
+
+    .demo-preview.chatgpt {
+      background: linear-gradient(135deg, #10a37f 0%, #5436da 100%);
+    }
+
+    .demo-content {
+      padding: 2rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .demo-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .demo-subtitle {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .demo-description {
+      font-size: 1rem;
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      flex: 1;
+    }
+
+    .features-list {
+      list-style: none;
+      margin-bottom: 1.5rem;
+    }
+
+    .features-list li {
+      padding: 0.5rem 0;
+      color: #6b7280;
+      font-size: 0.9375rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .features-list li::before {
+      content: '✓';
+      color: #10b981;
+      font-weight: 700;
+    }
+
+    .rating-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .rating-badge {
+      flex: 1;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .rating-label {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .rating-stars {
+      color: #f59e0b;
+      font-size: 1rem;
+    }
+
+    .demo-link {
+      display: block;
+      padding: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .demo-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .comparison-table {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      overflow-x: auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .comparison-table h2 {
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+      color: #1f2937;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 700;
+      color: #374151;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      color: #6b7280;
+      font-size: 0.9375rem;
+    }
+
+    .star-rating {
+      color: #f59e0b;
+    }
+
+    .recommended {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #d1fae5;
+      color: #065f46;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .demos-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .comparison-table {
+        padding: 1rem;
+      }
+
+      table {
+        font-size: 0.875rem;
+      }
+
+      th, td {
+        padding: 0.75rem 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚖️ Law Firm Analytics Demo</h1>
+      <p>Compare multiple UI/UX approaches for the same data</p>
+    </div>
+
+    <div class="intro-box">
+      <h2>📋 About This Demo</h2>
+      <p>
+        This showcase presents <strong>multiple distinct design approaches</strong> for displaying AHPI (Asymmetric Heterogeneous Pairwise Interactions)
+        law firm rankings. Each demo uses the same underlying data (Top 10 firms, Win Rate, AHPI scores) but presents it
+        with a different design philosophy. Click any card below to explore the full interactive demo.
+      </p>
+      <p style="margin-top: 1rem;">
+        <strong>Common Features:</strong> All demos include "Generate Pitch Deck" functionality, Win Rate display,
+        and citation verification badges. The differences lie in information architecture, visual style, and user flow.
+      </p>
+      <p style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.2); border-radius: 0.5rem; border-left: 3px solid #00ff88;">
+        <strong>🌟 Main Recommendation: Option J2 (Cascade Landing)</strong> - A clean automated opening sequence
+        (typewriter prompt + 3-card evidence cascade) that smoothly transitions into a professional dashboard
+        (rankings table + chart + firm detail panel).
+        <a href="J2_cascade_landing.html" target="_blank" style="color: white; text-decoration: underline; font-weight: 700;">Open J2 →</a>
+      </p>
+    </div>
+
+    <div class="demos-grid">
+      <!-- Demo J2: Cascade Landing (Primary) -->
+      <div class="demo-card">
+        <div class="demo-preview linear">🛬📊</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option J2 · Primary</div>
+          <div class="demo-title">J2: Cascade Landing</div>
+          <div class="demo-description">
+            Automated, evidence-first opening: typewriter prompt, three evidence cards cascade in, then
+            transitions into a professional dashboard with an interactive rankings table and firm details.
+          </div>
+
+          <ul class="features-list">
+            <li>Typewriter Command Deck intro</li>
+            <li>3-card evidence cascade (top/left/right)</li>
+            <li>Automatic blur → reveal dashboard transition</li>
+            <li>Clickable table updates detail panel</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Academic</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Commercial</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Ease</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="J2_cascade_landing.html" class="demo-link" target="_blank">
+            View Demo → <span class="recommended">PRIMARY</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo A: Perplexity Style -->
+      <div class="demo-card">
+        <div class="demo-preview perplexity">🔍</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option A</div>
+          <div class="demo-title">Perplexity Style</div>
+          <div class="demo-description">
+            Clean, minimalist search-first interface. Users start with a simple input box,
+            results appear with clear hierarchy and optional methodology details.
+          </div>
+
+          <ul class="features-list">
+            <li>Extreme simplicity</li>
+            <li>Search-first interaction</li>
+            <li>Collapsible methodology</li>
+            <li>Data-driven summary cards</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Academic</div>
+              <div class="rating-stars">⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Commercial</div>
+              <div class="rating-stars">⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Ease</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="A_perplexity_style.html" class="demo-link" target="_blank">
+            View Demo →
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo B: Linear Style -->
+      <div class="demo-card">
+        <div class="demo-preview linear">⚡</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option B</div>
+          <div class="demo-title">Linear / Arc Style</div>
+          <div class="demo-description">
+            Dark mode with neon accents, animated background grid, and glassmorphism effects.
+            Feels like cutting-edge legal tech for the future.
+          </div>
+
+          <ul class="features-list">
+            <li>Dark mode aesthetic</li>
+            <li>Animated backgrounds</li>
+            <li>Neon blue/green gradients</li>
+            <li>High-tech vibe</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Academic</div>
+              <div class="rating-stars">⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Commercial</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Ease</div>
+              <div class="rating-stars">⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="B_linear_style.html" class="demo-link" target="_blank">
+            View Demo →
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo C: Stripe Style -->
+      <div class="demo-card">
+        <div class="demo-preview stripe">📊</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option C · Recommended</div>
+          <div class="demo-title">Stripe Dashboard</div>
+          <div class="demo-description">
+            Professional data dashboard with sidebar navigation, sortable tables, and clean metrics.
+            Perfect balance of academic rigor and business polish.
+          </div>
+
+          <ul class="features-list">
+            <li>Professional dashboard layout</li>
+            <li>Comprehensive data table</li>
+            <li>Sidebar navigation</li>
+            <li>Business-ready design</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Academic</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Commercial</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Ease</div>
+              <div class="rating-stars">⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="C_stripe_style.html" class="demo-link" target="_blank">
+            View Demo → <span class="recommended">Recommended</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo D: Apple Style -->
+      <div class="demo-card">
+        <div class="demo-preview apple">🍎</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option D</div>
+          <div class="demo-title">Apple Narrative</div>
+          <div class="demo-description">
+            Scrolling storytelling experience with massive typography, generous whitespace,
+            and emotional product-page storytelling.
+          </div>
+
+          <ul class="features-list">
+            <li>Long-scroll narrative</li>
+            <li>Huge typography</li>
+            <li>Emotional storytelling</li>
+            <li>Generous whitespace</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Academic</div>
+              <div class="rating-stars">⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Commercial</div>
+              <div class="rating-stars">⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Ease</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="D_apple_style.html" class="demo-link" target="_blank">
+            View Demo →
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo E: ChatGPT Style -->
+      <div class="demo-card">
+        <div class="demo-preview chatgpt">💬</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option E</div>
+          <div class="demo-title">ChatGPT Conversation</div>
+          <div class="demo-description">
+            Conversational AI assistant interface with chat bubbles, suggested questions,
+            and interactive data cards. Natural language queries.
+          </div>
+
+          <ul class="features-list">
+            <li>Chat-based interaction</li>
+            <li>AI assistant persona</li>
+            <li>Suggested questions</li>
+            <li>Natural language interface</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Academic</div>
+              <div class="rating-stars">⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Commercial</div>
+              <div class="rating-stars">⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Ease</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="E_chatgpt_style.html" class="demo-link" target="_blank">
+            View Demo →
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo F: Hybrid Linear + ChatGPT -->
+      <div class="demo-card">
+        <div class="demo-preview linear">⚡💬</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option F</div>
+          <div class="demo-title">Hybrid: Linear AI</div>
+          <div class="demo-description">
+            Best of both worlds: Linear's stunning dark tech aesthetic combined with ChatGPT's
+            conversational simplicity. Professional data visualization in a single-page chat flow.
+          </div>
+
+          <ul class="features-list">
+            <li>Dark mode + neon gradients (from B)</li>
+            <li>Single-tab chat interface (from E)</li>
+            <li>Professional data cards & charts</li>
+            <li>No cheap emojis, premium feel</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Academic</div>
+              <div class="rating-stars">⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Commercial</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Ease</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="F_hybrid_linear_chat.html" class="demo-link" target="_blank">
+            View Demo →
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo G: The Oracle - Ultimate Edition -->
+      <div class="demo-card">
+        <div class="demo-preview linear">✨🔮</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option G · ULTIMATE 🔥✨</div>
+          <div class="demo-title">The Oracle</div>
+          <div class="demo-description">
+            The ultimate experience. Automated demo with three cutting-edge UI techniques:
+            Layout morphing search, holographic evidence cards, and canvas reveal with auto-cursor.
+            Fully automated presentation on page load.
+          </div>
+
+          <ul class="features-list">
+            <li>Layout Morphing: Search flows from center to header</li>
+            <li>Holographic Cards: Floating evidence verification</li>
+            <li>Canvas Reveal: Page slides, chart unveils with auto-pointer</li>
+            <li>100% automated demo - just watch it happen</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Academic</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Commercial</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Wow Factor</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="G_the_oracle.html" class="demo-link" target="_blank">
+            View Demo → <span class="recommended">ULTIMATE 🔮</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo H: Cockpit + Artifacts -->
+      <div class="demo-card">
+        <div class="demo-preview linear">🎛️🖥️</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option H · PROFESSIONAL ⚡🎯</div>
+          <div class="demo-title">Cockpit + Artifacts</div>
+          <div class="demo-description">
+            IDE-grade professional interface. Command Bar at bottom, Tab system for artifacts,
+            draggable Floating Terminal for reasoning, Split View with interactive highlighting,
+            and D3.js Network Graph. Real tool for serious analysis.
+          </div>
+
+          <ul class="features-list">
+            <li>Command Bar: Global / commands (⌘K to focus)</li>
+            <li>Tab System: Rankings | Network | Verification | Pitch</li>
+            <li>Floating Terminal: Draggable reasoning window</li>
+            <li>Interactive Highlights: Hover text → Graph nodes light up</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Professional</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Productivity</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Data Density</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="H_cockpit_artifacts.html" class="demo-link" target="_blank">
+            View Demo → <span class="recommended">COCKPIT 🎛️</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo I: Ultimate Fusion -->
+      <div class="demo-card">
+        <div class="demo-preview linear">⚡🔮✨</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option I · THE FUSION 🌟⚡</div>
+          <div class="demo-title">Ultimate Fusion</div>
+          <div class="demo-description">
+            The best of both worlds: G's magical visual effects (silky smooth, GPU-accelerated) combined with
+            H's professional Cockpit layout. Holographic Reasoning Panel slides from right, occupies 50% screen,
+            minimizes on click. Maximum impact + Maximum productivity.
+          </div>
+
+          <ul class="features-list">
+            <li>Silky Smooth Animations: GPU-accelerated transforms</li>
+            <li>Holographic Reasoning: 50% screen coverage, magical effects</li>
+            <li>Professional Layout: Cockpit + Command Bar + Tabs</li>
+            <li>Interactive Network: D3.js with real-time highlighting</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Magic</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Professional</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Performance</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="I_ultimate_fusion.html" class="demo-link" target="_blank">
+            View Demo → <span class="recommended">FUSION 🌟</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Demo J: Ultimate Hybrid -->
+      <div class="demo-card">
+        <div class="demo-preview linear">🔮📊✨</div>
+        <div class="demo-content">
+          <div class="demo-subtitle">Option J · ULTIMATE HYBRID 🌟🎯</div>
+          <div class="demo-title">Ultimate Hybrid</div>
+          <div class="demo-description">
+            The best of both worlds: G's magical automated opening (typewriter, layout morphing,
+            holographic evidence cards) followed by C's professional high-density Dashboard.
+            3-column layout: 20% conversation log, 50% rankings table + chart, 30% detailed firm profile.
+          </div>
+
+          <ul class="features-list">
+            <li>Automated Oracle Opening: Typewriter + Layout Morphing</li>
+            <li>Holographic Evidence Cards: Slide-in verification</li>
+            <li>High-Density Dashboard: Stripe-style 3-column layout</li>
+            <li>Interactive Table: Click firms to update detail panel</li>
+          </ul>
+
+          <div class="rating-row">
+            <div class="rating-badge">
+              <div class="rating-label">Wow Factor</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Data Density</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+            <div class="rating-badge">
+              <div class="rating-label">Professional</div>
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+            </div>
+          </div>
+
+          <a href="J_ultimate_hybrid.html" class="demo-link" target="_blank">
+            View Demo → <span class="recommended">HYBRID 🎯</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="comparison-table">
+      <h2>📊 Detailed Comparison Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>A: Perplexity</th>
+            <th>B: Linear</th>
+            <th>C: Stripe</th>
+            <th>D: Apple</th>
+            <th>E: ChatGPT</th>
+            <th>F: Hybrid</th>
+            <th>G: Oracle 🔮</th>
+            <th>H: Cockpit 🎛️</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Visual Style</strong></td>
+            <td>Minimalist white</td>
+            <td>Dark + neon</td>
+            <td>Professional dashboard</td>
+            <td>Clean + whitespace</td>
+            <td>Chat interface</td>
+            <td>Dark tech + chat</td>
+            <td>Quantum + morphing</td>
+            <td>IDE Cockpit</td>
+          </tr>
+          <tr>
+            <td><strong>Information Density</strong></td>
+            <td>Low ⭐⭐</td>
+            <td>Medium ⭐⭐⭐</td>
+            <td>High ⭐⭐⭐⭐⭐</td>
+            <td>Medium ⭐⭐⭐</td>
+            <td>Low ⭐⭐</td>
+            <td>High ⭐⭐⭐⭐</td>
+            <td>Very High ⭐⭐⭐⭐⭐</td>
+            <td>Maximum ⭐⭐⭐⭐⭐</td>
+          </tr>
+          <tr>
+            <td><strong>Best For Robert Mahari</strong></td>
+            <td>⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+          </tr>
+          <tr>
+            <td><strong>Best For Big Law</strong></td>
+            <td>⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐</td>
+            <td>⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+          </tr>
+          <tr>
+            <td><strong>Wow Factor</strong></td>
+            <td>⭐⭐</td>
+            <td>⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐</td>
+            <td>⭐⭐</td>
+            <td>⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>⭐⭐⭐⭐</td>
+          </tr>
+          <tr>
+            <td><strong>Development Time</strong></td>
+            <td>1 day</td>
+            <td>2 days</td>
+            <td>2 days</td>
+            <td>3 days</td>
+            <td>1 day</td>
+            <td>1.5 days</td>
+            <td>2.5 days</td>
+            <td>3 days</td>
+          </tr>
+          <tr>
+            <td><strong>Technical Complexity</strong></td>
+            <td>Low</td>
+            <td>Medium</td>
+            <td>Medium</td>
+            <td>High</td>
+            <td>Low</td>
+            <td>Medium</td>
+            <td>Very High</td>
+            <td>Very High</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 0.5rem;">
+        <strong style="color: #065f46;">💡 Updated Recommendation:</strong>
+        <p style="color: #047857; margin-top: 0.5rem; line-height: 1.8;">
+          <strong>🎛️ For Daily Professional Use: Option H (Cockpit)</strong> - IDE-grade interface with Command Bar,
+          Tab system, draggable Terminal windows, and interactive highlighting. Best for users who need a real tool,
+          not just a demo. Maximum information density with professional workflow.
+        </p>
+        <p style="color: #047857; margin-top: 0.5rem; line-height: 1.8;">
+          <strong>🔮 For Maximum Impact: Option G (The Oracle)</strong> - The most advanced demo featuring three
+          cutting-edge UI techniques: Layout morphing, holographic evidence cards, and canvas reveal with auto-cursor.
+          Fully automated presentation that demonstrates itself. Perfect for maximum impact and showcasing technical excellence.
+        </p>
+        <p style="color: #047857; margin-top: 0.5rem; line-height: 1.8;">
+          <strong>🔥 For Balance: Option F (Hybrid Linear AI)</strong> - Combines the "wow factor" of dark tech design
+          with the simplicity of conversational UI. Perfect for users who want to feel smart while being guided effortlessly.
+          Shows both visual design skills AND product thinking.
+        </p>
+        <p style="color: #047857; margin-top: 0.5rem; line-height: 1.8;">
+          <strong>Strategy:</strong> Lead with Option H to Robert Mahari (shows you can build production tools),
+          mention Option G for visual impact, and keep Option F/C available for different stakeholder preferences.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared/mock-data.js"></script>
+</body>
+</html>
