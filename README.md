@@ -78,16 +78,16 @@ The platform implements a **verifier-first multi-agent pipeline** that decompose
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  🖥️  J2 Neural Command Deck (Typewriter Animation)           │
+│       Neural Command Deck (Typewriter Animation)             │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │  Agent 1    │  │  Agent 2    │  │  Agent 3    │          │
-│  │  KB Loader  │→ │  Verifier   │→ │  Synthesis  │→  ...    │
-│  │             │  │             │  │             │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
+│  │  Agent 1    │  │  Agent 2    │  │  Agent 3    │           │
+│  │  KB Loader  │→ │  Verifier   │→ │  Synthesis  │→  ...     │
+│  │             │  │             │  │             │           │
+│  └─────────────┘  └─────────────┘  └─────────────┘           │
 │       ↓                ↓                ↓                    │
-│  Progress Bar    Progress Bar    Progress Bar               │
+│  Progress Bar    Progress Bar    Progress Bar                │
 │                                                              │
 ├──────────────────────────────────────────────────────────────┤
 │  [Open Workbench →]  Deep-link with analysis state           │
@@ -118,10 +118,10 @@ This architecture ensures **explainable, auditable, and trustworthy** legal inte
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Legal Intelligence Workbench                 │
+│                     Legal Intelligence Workbench                │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
-│  │   J2 Demo   │  │  Workbench  │  │     Shared Components   │  │
+│  │      Demo   │  │  Workbench  │  │     Shared Components   │  │
 │  │  Interface  │◄─┤    Core     │◄─┤  • InsightsPanel        │  │
 │  │             │  │             │  │  • NetworkView          │  │
 │  └──────┬──────┘  └──────┬──────┘  │  • MatrixView           │  │
@@ -132,7 +132,7 @@ This architecture ensures **explainable, auditable, and trustworthy** legal inte
 │  │   (iframe ↔ parent sync)    │                                │
 │  └─────────────────────────────┘                                │
 ├─────────────────────────────────────────────────────────────────┤
-│                        Data Layer                                │
+│                        Data Layer                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
 │  │   Filters   │  │  Analytics  │  │      LLM Client         │  │
 │  │   Engine    │  │   Engine    │  │  • OpenAI Compatible    │  │
