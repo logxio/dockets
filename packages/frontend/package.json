@@ -1,0 +1,41 @@
+{
+  "name": "legal-intelligence-workbench",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "data:quick": "cd ../law_firm_ranking-main && DEMO_MODE=true bash ../scripts/python.sh case_fitting.py",
+    "data:refresh": "cd ../law_firm_ranking-main && bash ../scripts/python.sh export_moesm4_for_frontend.py && bash ../scripts/python.sh fit_rankings_from_moesm4.py && bash ../scripts/python.sh export_for_demo.py --in-interactions ../packages/frontend/public/sample/mahari_fig2_moesm4_interactions.csv --top-n 100 --max-edges 5000 --out-interactions ../packages/frontend/public/sample/mahari_top100_interactions.csv --in-rankings ../packages/frontend/public/sample/mahari_exp_scores.csv && bash ../scripts/python.sh export_for_demo.py --in-interactions ../packages/frontend/public/sample/mahari_fig2_moesm4_interactions.csv --top-n 50 --max-edges 2000 --out-interactions ../packages/frontend/public/sample/mahari_top50_interactions.csv --in-rankings ../packages/frontend/public/sample/mahari_exp_scores.csv && bash ../scripts/python.sh export_research_assistant_data.py",
+    "dev:demo": "VITE_DEMO_MODE=true vite",
+    "dev": "vite",
+    "build:demo": "VITE_DEMO_MODE=true vite build",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview:demo": "VITE_DEMO_MODE=true vite preview",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.23",
+    "cytoscape": "^3.33.1",
+    "lucide-react": "^0.562.0",
+    "papaparse": "^5.5.3",
+    "postcss": "^8.5.6",
+    "react": "^19.2.0",
+    "react-cytoscapejs": "^2.0.0",
+    "react-dom": "^19.2.0",
+    "react-dropzone": "^14.3.8",
+    "recharts": "^3.6.0",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "vite": "^7.2.4"
+  }
+}

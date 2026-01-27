@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "generatedAt": "2026-01-01T11:19:51+00:00",
+  "source": {
+    "interactionsCsv": "/sample/mahari_top100_interactions.csv",
+    "rows": 3815,
+    "cases": 443,
+    "firms": 100
+  },
+  "insights": [
+    {
+      "id": "rivalry:morrison & foerster__quinn emanuel urquhart & sullivan",
+      "kind": "rivalry",
+      "title": "Rivalry: morrison & foerster ↔ quinn emanuel urquhart & sullivan",
+      "summary": "双向高频对手关系（total_weight=18.47, balance=0.05）。",
+      "firms": [
+        "morrison & foerster",
+        "quinn emanuel urquhart & sullivan"
+      ],
+      "pairs": [
+        {
+          "plaintiff": "morrison & foerster",
+          "defendant": "quinn emanuel urquhart & sullivan"
+        },
+        {
+          "plaintiff": "quinn emanuel urquhart & sullivan",
+          "defendant": "morrison & foerster"
+        }
+      ],
+      "metrics": {
+        "weightTotal": 18.467297214229376,
+        "weightU1toU2": 17.57600591614131,
+        "weightU2toU1": 0.8912912980880676,
+        "casesTotal": 4,
+        "balance": 0.0482632237814049
+      },
+      "evidence": {
+        "caseIds": [
+          12273758,
+          4192531,
+          4226965,
+          12273803
+        ]
+      },
+      "filterPatch": {
+        "focusCell": "morrison & foerster",
+        "focusMode": "any"
+      }
+    },
+    {
+      "id": "rivalry:kirkland & ellis__morgan, lewis & bockius",
+      "kind": "rivalry",
+      "title": "Rivalry: kirkland & ellis ↔ morgan, lewis & bockius",
+      "summary": "双向高频对手关系（total_weight=13.83, balance=0.11）。",
+      "firms": [
+        "kirkland & ellis",
+        "morgan, lewis & bockius"
+      ],
+      "pairs": [
+        {
+          "plaintiff": "kirkland & ellis",
+          "defendant": "morgan, lewis & bockius"
+        },
+        {
+          "plaintiff": "morgan, lewis & bockius",
+          "defendant": "kirkland & ellis"
+        }
+      ],
+      "metrics": {
+        "weightTotal": 13.833262145624088,
+        "weightU1toU2": 1.5638531083724843,
+        "weightU2toU1": 12.269409037251604,
+        "casesTotal": 6,
+        "balance": 0.11305020405958127
+      },
+      "evidence": {
+        "caseIds": [
+          4261281,
+          4060090,
+          4326770,
+          4344794,
+          4259601,
+          12274235
+        ]
+      },
+      "filterPatch": {
+        "focusCell": "kirkland & ellis",
+        "focusMode": "any"
+      }
+    },
+    {
+      "id": "rivalry:attorney general__morrison & foerster",
+      "kind": "rivalry",
+      "title": "Rivalry: attorney general ↔ morrison & foerster",
+      "summary": "双向高频对手关系（total_weight=13.77, balance=0.38）。",
+      "firms": [
+        "attorney general",
+        "morrison & foerster"
+      ],
+      "pairs": [
+        {
+          "plaintiff": "attorney general",
+          "defendant": "morrison & foerster"
+        },
+        {
+          "plaintiff": "morrison & foerster",
+          "defendant": "attorney general"
+        }
+      ],
+      "metrics": {
+        "weightTotal": 13.767340199395644,
+        "weightU1toU2": 5.182272210246036,
+        "weightU2toU1": 8.585067989149607,
+        "casesTotal": 10,
+        "balance": 0.376417821829777
+      },
+      "evidence": {
+        "caseIds": [
+          12171042,
+          4365811,
+          12278036,
+          4153626,
+          6888300,
+          4171488,
+          4324926,
+          4232112,
+          4275594,
+          12266618
+        ]
+      },
+      "filterPatch": {
+        "focusCell": "attorney general",
+        "focusMode": "any"
+      }
+    },
+    {
+      "id": "defendant_advantage:overall",
+      "kind": "defendant_advantage",
+      "title": "Defendant advantage (overall)",
+      "summary": "整体上 DefendantWin 占比 21.0%（case-level）。",
+      "metrics": {
+        "defendantWinRate": 0.20993227990970656,
+        "cases": 443
+      },
+      "evidence": {
+        "caseIds": [
+          12273758,
+          4261925,
+          4346906,
+          4125527,
+          4192531,
+          12140241,
+          12272551,
+          4248520,
+          4260775,
+          4153041,
+          4250144,
+          4362742
+        ]
+      },
+      "filterPatch": {
+        "annotationQuery": "DefendantWin"
+      }
+    },
+    {
+      "id": "case_type_bias:contract",
+      "kind": "case_type_bias",
+      "title": "CaseType bias: contract",
+      "summary": "contract 的 DefendantWin 占比 9.1%（与整体差异 11.9%）。",
+      "metrics": {
+        "caseType": "contract",
+        "defendantWinRate": 0.09090909090909091,
+        "cases": 44
+      },
+      "evidence": {
+        "caseIds": [
+          3928563,
+          6928606,
+          4326261,
+          4258493,
+          12270943,
+          4178093,
+          3594648,
+          4362742,
+          4259601,
+          4326770,
+          4229068,
+          4334841
+        ]
+      },
+      "filterPatch": {
+        "metaboliteQuery": "contract"
+      }
+    }
+  ]
+}
