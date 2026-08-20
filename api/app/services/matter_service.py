@@ -21,6 +21,8 @@ import pandas as pd
 
 try:
     from pipeline.matter_signals import (
+        MIN_CASES_FOR_WIN_RATE,
+        WIN_RATE_PRIOR_STRENGTH,
         OfflineKB,
         compute_candidate_outcome_signal as kb_compute_candidate_outcome_signal,
         list_evidence as kb_list_evidence,
@@ -31,6 +33,21 @@ except Exception:  # pragma: no cover
     kb_compute_candidate_outcome_signal = None  # type: ignore[assignment]
     kb_list_evidence = None  # type: ignore[assignment]
     kb_recommend_candidates = None  # type: ignore[assignment]
+    MIN_CASES_FOR_WIN_RATE = 3
+    WIN_RATE_PRIOR_STRENGTH = 15.0
+
+
+def _estimator_assumptions() -> dict[str, Any]:
+    """
+    What the win-rate numbers in a pack were computed under. Recorded per pack so
+    a decision can be re-read later against the settings that produced it.
+    """
+    return {
+        "winRateEstimator": "empirical win rate shrunk toward the (role, case type) baseline",
+        "priorStrength": float(WIN_RATE_PRIOR_STRENGTH),
+        "minCasesForWinRate": int(MIN_CASES_FOR_WIN_RATE),
+        "baselineSource": "observed outcomes in the offline snapshot",
+    }
 
 
 def _now_iso() -> str:
@@ -311,7 +328,6 @@ def _enrich_candidates_with_signals(
                 role=role,  # type: ignore[arg-type]
                 case_type=case_type,
                 opponent_firm=opponent_firm,
-                baseline_defendant_win_rate_pct=83,
             )
         except Exception:
             continue
@@ -365,14 +381,19 @@ def _enrich_candidates_with_signals(
                     citations = []
 
             predicted = sig.get("predictedWinRatePct")
-            baseline_def = sig.get("baselineDefendantWinRatePct")
+            baseline_pct = sig.get("baselineWinRatePct")
+            weight_pct = meta.get("evidenceWeightPct") if isinstance(meta, dict) else None
             summary_parts: list[str] = []
             if isinstance(predicted, int):
                 summary_parts.append(f"Predicted win rate: {predicted}%")
+            elif isinstance(n_ev, int):
+                summary_parts.append(f"Win rate unknown: {n_ev} observed cases is too few to estimate")
             if isinstance(lift, int):
-                summary_parts.append(f"Lift vs baseline: {lift:+d}%")
-            if isinstance(baseline_def, int):
-                summary_parts.append(f"Baseline(defendant): {baseline_def}%")
+                summary_parts.append(f"Lift vs baseline: {lift:+d}pp")
+            if isinstance(baseline_pct, int):
+                summary_parts.append(f"Baseline ({role}): {baseline_pct}%")
+            if isinstance(weight_pct, int) and isinstance(predicted, int):
+                summary_parts.append(f"From this firm's record: {weight_pct}%")
             if isinstance(confidence, str) and confidence:
                 summary_parts.append(f"Confidence: {confidence}")
             outcome_summary = " · ".join(summary_parts) if summary_parts else "Outcome signal unavailable"

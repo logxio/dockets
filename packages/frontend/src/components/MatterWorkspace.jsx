@@ -396,9 +396,11 @@ function CandidatesTab({ matterId, onShowToast, onNext }) {
 	                )}
 	              </div>
 	              <div className="candidate-stats">
-	                {c.signals?.outcomeLiftPct != null && (
-	                  <span className="candidate-stat positive">
-	                    <Trophy size={12} /> +{c.signals.outcomeLiftPct}% win rate
+	                {typeof c.signals?.outcomeLiftPct === "number" && (
+	                  <span className={`candidate-stat ${c.signals.outcomeLiftPct >= 0 ? "positive" : "negative"}`}>
+	                    <Trophy size={12} />{" "}
+	                    {c.signals.outcomeLiftPct >= 0 ? "+" : ""}
+	                    {c.signals.outcomeLiftPct}pp win rate
 	                  </span>
 	                )}
 	                {c.signals?.evidenceCount != null && (
@@ -549,15 +551,20 @@ function CompareTab({ matterId, onNext }) {
   }
 
   const formatSignedPct = (n) => {
-    const v = Number(n || 0);
-    if (!Number.isFinite(v)) return "0%";
-    return `${v >= 0 ? "+" : ""}${v}%`;
+    if (n == null) return "—";
+    const v = Number(n);
+    if (!Number.isFinite(v)) return "—";
+    return `${v >= 0 ? "+" : ""}${v}pp`;
   };
 
-  const sorted = [...candidates].sort((a, b) => (b.signals?.outcomeLiftPct || 0) - (a.signals?.outcomeLiftPct || 0));
+  // Firms with too few observed cases have no lift at all; they sort last rather
+  // than tying with a firm measured at exactly the baseline.
+  const liftOf = (c) => (typeof c?.signals?.outcomeLiftPct === "number" ? c.signals.outcomeLiftPct : null);
+  const sorted = [...candidates].sort((a, b) => (liftOf(b) ?? -Infinity) - (liftOf(a) ?? -Infinity));
   const bestFirm = sorted[0] || null;
   const secondFirm = sorted[1] || null;
-  const liftGap = (bestFirm?.signals?.outcomeLiftPct || 0) - (secondFirm?.signals?.outcomeLiftPct || 0);
+  const liftGap =
+    liftOf(bestFirm) != null && liftOf(secondFirm) != null ? liftOf(bestFirm) - liftOf(secondFirm) : null;
   const bestEvidence = bestFirm?.signals?.evidenceCount || 0;
 
   return (
@@ -584,7 +591,7 @@ function CompareTab({ matterId, onNext }) {
               <div className="compare-winner-name">{bestFirm.firm}</div>
             </div>
             <div className="compare-winner-stat">
-              {formatSignedPct(bestFirm.signals?.outcomeLiftPct || 0)} win rate lift
+              {liftOf(bestFirm) != null ? `${formatSignedPct(liftOf(bestFirm))} win rate lift` : "win rate unknown"}
             </div>
           </div>
 
@@ -667,7 +674,7 @@ function CompareTab({ matterId, onNext }) {
             </thead>
             <tbody>
                   {sorted.map((c, i) => {
-                    const lift = c.signals?.outcomeLiftPct || 0;
+                    const lift = liftOf(c);
                     return (
                       <tr key={c.firmKey} className={i === 0 ? "highlight" : ""}>
                         <td className="compare-cell rank">{i + 1}</td>
@@ -675,7 +682,9 @@ function CompareTab({ matterId, onNext }) {
                           {c.firm}
                           {i === 0 && <Star size={14} className="star" />}
                         </td>
-                        <td className={`compare-cell ${lift >= 0 ? "positive" : "negative"}`}>{formatSignedPct(lift)}</td>
+                        <td className={`compare-cell ${lift == null ? "" : lift >= 0 ? "positive" : "negative"}`}>
+                          {formatSignedPct(lift)}
+                        </td>
                         <td className="compare-cell">{c.signals?.evidenceCount || 0}</td>
                         <td className="compare-cell">{c.cost?.hourlyRateUsd ? `$${c.cost.hourlyRateUsd}` : "-"}</td>
                         <td className="compare-cell">

@@ -3,7 +3,7 @@ const LEGACY_DEFAULT_MODEL = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B";
 
 export const DEFAULT_LLM_CONFIG = {
   model: "deepseek-ai/DeepSeek-R1-Distill-Llama-32B",
-  apiKey: "sk-private-cloud",
+  apiKey: "local-no-auth",
 };
 
 export function loadLlmConfig() {

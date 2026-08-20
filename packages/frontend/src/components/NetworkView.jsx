@@ -239,7 +239,7 @@ export default function NetworkView({
     const png64 = cy.png({ full: true, bg: isDark ? "#0a0a0a" : "#ffffff", scale: 2 });
     const a = document.createElement("a");
     a.href = png64;
-    a.download = "mebocost-network.png";
+    a.download = "litigation-network.png";
     a.click();
   }, [isDark]);
 

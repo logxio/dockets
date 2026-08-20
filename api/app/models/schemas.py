@@ -332,7 +332,10 @@ class UpdateMatterRequest(CamelModel):
 
 
 class OutcomeSignal(CamelModel):
-    baseline_defendant_win_rate_pct: int = Field(default=83, ge=0, le=100)
+    # Baseline is the observed win rate for the role, narrowed to the case type
+    # where the snapshot supports it. `predicted_win_rate_pct` is None when the
+    # firm has too few observed cases to estimate from.
+    baseline_win_rate_pct: int = Field(ge=0, le=100)
     predicted_win_rate_pct: int | None = Field(default=None, ge=0, le=100)
     win_rate_lift_pct: int | None = Field(default=None, ge=-100, le=100)
     confidence: Confidence = "unknown"

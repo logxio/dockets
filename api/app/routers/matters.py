@@ -33,7 +33,7 @@ from ..services import (
     render_pack_html,
     sample_data,
 )
-from ..services.matter_service import _brief_hash, _now_iso
+from ..services.matter_service import _brief_hash, _estimator_assumptions, _now_iso
 
 try:
     from pipeline.document_parse import extract_text_from_pdf_bytes, parse_text_to_brief
@@ -240,7 +240,7 @@ def _run_intake_job(job_id: str, *, file_bytes: bytes | None, text: str | None) 
         "inputs": {
             "briefHash": _brief_hash(brief),
             "candidateFirms": [c.get("firm") for c in candidates if c.get("firm")],
-            "assumptions": {"baselineDefendantWinRatePct": 83},
+            "assumptions": _estimator_assumptions(),
         },
         "summary": {
             "recommended": [
@@ -557,7 +557,7 @@ def _generate_pack_job(job_id: str, matter_id: str) -> None:
         "inputs": {
             "briefHash": _brief_hash(brief),
             "candidateFirms": [c.get("firm") for c in candidates if c.get("firm")],
-            "assumptions": {"baselineDefendantWinRatePct": 83},
+            "assumptions": _estimator_assumptions(),
         },
         "summary": {
             "recommended": [

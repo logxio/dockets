@@ -15,7 +15,7 @@ const receiver = argValue("--receiver") ?? "";
 
 const baseUrl = process.env.LLM_BASE_URL ?? process.env.VITE_LLM_API_URL ?? "";
 const model = process.env.LLM_MODEL ?? "deepseek-ai/DeepSeek-R1-Distill-Llama-32B";
-const apiKey = process.env.LLM_API_KEY ?? "sk-private-cloud";
+const apiKey = process.env.LLM_API_KEY ?? "local-no-auth";
 
 function normalizeLabel(v) {
   if (v === null || v === undefined) return "";

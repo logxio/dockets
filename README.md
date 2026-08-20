@@ -8,6 +8,8 @@ That reordering is the headline, and it does not survive contact with the eviden
 
 Which is why the workbench is the deliverable and the ranking is an input to it. Every score carries its evidence count, every claim drills to the case IDs behind it, and a null-control pass re-fits on randomized outcomes to show how much of a pattern is real. A ranking you can interrogate beats a ranking you have to trust.
 
+The same discipline applies to the firm-level win rate the Matters view reports: it is an empirical rate from observed outcomes shrunk toward the case-type baseline, it declines to answer below three observed cases, and [`packages/pipeline/scripts/evaluate_win_rate.py`](packages/pipeline/scripts/evaluate_win_rate.py) regenerates its leave-one-out scores on demand.
+
 <p align="center">
   <img src="./docs/demo1.GIF" alt="Network view: plaintiff-defendant graph with evidence drill-down" width="100%">
   <img src="./docs/demo2.GIF" alt="Rankings and report views" width="100%">
@@ -80,7 +82,8 @@ Where the numbers stop, and what closes each gap.
 
 - **No prior in the fit.** One- and two-case firms reach extreme scores, which is what puts the top of the ranking where it is. Sorting by evidence count gives a usable table today; a Beta prior on `q` and an L2 penalty on `λ` fix it at the source.
 - **Settlements are unobserved.** Every case in the data has a winner. Most litigation does not end that way, so the fit describes cases that reached judgment, not the market.
-- **The Matters win rate is a passthrough.** It carries the source extract's `PredDefWinProba` column, which scores AUC 0.455 against the actual winner — that column is a selection weight, not a fitted prediction. The replacement, an empirical rate shrunk toward the case-type base, is specified in [`packages/pipeline/DESIGN.md`](packages/pipeline/DESIGN.md).
+- **Matters covers 22% of firm-roles.** The win rate there is an empirical rate shrunk toward the case-type baseline, and it returns `unknown` below three observed cases — which is 77.7% of firm-roles in this snapshot. Fewer answers, and the ones that come back hold up: leave-one-out AUC 0.846 against a 0.759 baseline-only null. Method and measurements in [`packages/pipeline/DESIGN.md`](packages/pipeline/DESIGN.md).
+- **That win rate is predictive, not causal.** Plaintiff-side firms pick cases they expect to win, so part of the signal is case selection. It answers how matters like this have resolved, not what hiring a given firm does to your odds.
 - **One 996 kB workbench chunk.** Cytoscape plus Recharts. Splitting it is build configuration, not a rewrite.
 - **Matter state is in-process.** The API holds matters and fits in memory; there is no persistence layer, so a restart clears them.
 
