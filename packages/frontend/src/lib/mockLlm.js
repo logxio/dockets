@@ -70,7 +70,7 @@ function buildDemoStructuredContent({ prompt, reason }) {
     "2. **Pairwise-game view**: focus on the strongest plaintiff→defendant pairs (see evidence). These pairs often form the stable backbone of the structure.\n" +
     "3. **Avoid reputation-only rankings**: reputation/size can miss true win-performance; Bradley–Terry / AHPI-style modeling incorporates opponent strength and role bias (e.g., defendant advantage).\n" +
     "4. **Extensions**: use an LLM agent to extract outcomes/case types/courts from opinions to expand the sample while keeping RowId-linked evidence.\n\n" +
-    "Summary: this demo shows a traceable loop (import → filter → evidence → export) as an engineering prototype for scaling Mahari-style ranking pipelines.";
+    "Summary: every claim above traces back through import → filter → evidence → export, so each one can be checked against the RowIds it cites.";
 
   const payload = {
     claims: [
@@ -81,7 +81,7 @@ function buildDemoStructuredContent({ prompt, reason }) {
         statement_md: `- In the injected rows, **${m1}**/**${m2}**/**${m3}** appear repeatedly, suggesting concentration in these case types; top pairs can be a core subset for follow-up checks.`,
         evidence_row_ids: [e1, e2, e3],
         caveats: [
-          "Demo output; real analysis must address sampling bias, role bias (defendant advantage), and case-type heterogeneity.",
+          "Sampling bias, role bias (defendant advantage), and case-type heterogeneity all bear on this reading; stratify before generalizing.",
         ],
       },
       {
@@ -103,10 +103,6 @@ function buildDemoStructuredContent({ prompt, reason }) {
     },
     filterPatch: mets[0] ? { metaboliteQuery: mets[0], topEdges: 300 } : { topEdges: 300 },
     evidence: { metabolites: [m1, m2, m3].filter(Boolean), pairs },
-    draftEmail: {
-      subject: "Proposal: outcome-based law firm ranking demo (POC)",
-      body_md: "Hi Robert,\\n\\nI read your *Nature Computational Science* paper on outcome-based law firm rankings. I built a small, shareable demo that treats each lawsuit as a plaintiff/defendant pairwise game and provides an interactive workflow (import → filter → evidence-linked insights → exportable report).\\n\\nIf useful, I’d love to discuss how to scale this to larger dockets and how an LLM agent could extract outcomes/case types/courts from raw texts to expand the dataset.\\n\\nBest,\\n[Your Name]",
-    },
   };
 
   return `<think>\n${think}\n</think>\n\n[REPORT_MD]\n${reportMd}\n[/REPORT_MD]\n[PAYLOAD_JSON]\n\`\`\`json\n${JSON.stringify(

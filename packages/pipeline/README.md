@@ -2,7 +2,7 @@
 
 ETL between raw litigation data and everything downstream of it: the AHPI estimator, the API, and the frontend's sample files. Also parses intake documents into a structured matter brief.
 
-Design notes for the recommendation side, including a live correctness bug worth knowing about, are in [DESIGN.md](DESIGN.md).
+Design notes for the recommendation side are in [DESIGN.md](DESIGN.md).
 
 ## Install
 

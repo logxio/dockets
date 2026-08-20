@@ -1,12 +1,12 @@
 # Migration status
 
-Terminal state of the pass that converged the duplicate source trees, removed all Chinese, and brought the repo to a publishable state. Written to the repo root as requested; it is a working record, not part of the project's documentation — delete it once it has been read.
+Terminal state of the pass that converged the duplicate source trees, removed all Chinese, and brought the repo to a publishable state. Written to the repo root as requested.
+
+**Delete this file before the repo goes public.** It is a working record for the author, not project documentation, and it quotes the phrasing it removed.
 
 ## Callback
 
-`callback_failed`
-
-The task arrived as a plain message with no originating-session identifier. `ListAgents` shows four peers (`media-drop-desktop-23`, `media-drop-desktop-ec`, `picchio-47`, `claude-2d`), none identifiable as the sender, and guessing was explicitly out of bounds. Receipt below; stopping here.
+`callback_sent` — to `claude-2d`, which identified itself as the originating session when it relayed the author's correction on the proof-of-concept line. The first attempt was marked `callback_failed`: the task arrived with no originating-session identifier and guessing among four peers was out of bounds.
 
 **Receipt:** Done. Output at `/Users/suapril/Code/dockets`, pushed to `origin/main`. No blockers. Six defects found and fixed along the way (listed under *Defects fixed*); one modelling bug documented rather than fixed (`PredDefWinProba`, see *Deliberately not done*). Repo left private.
 
@@ -70,7 +70,11 @@ The new one leads with a verified finding rather than adjectives. Every number i
 - Case-level outcomes are 79.6% plaintiff wins.
 - The `Court` column is empty for all 14,797 rows, so the court filter has nothing to filter on.
 
-The point of the rewrite is that the interesting thing about this project is not that it reimplements a published ranking method — it is that the reimplementation, run honestly, produces a top-of-table that is a small-sample artifact, and the workbench is built to make that visible. Zero badges, no emoji headings, one proof-of-concept sentence kept as instructed and not expanded, a *Known limits* section that names four real problems including one the pass discovered.
+The point of the rewrite is that the interesting thing here is not that a published ranking method got reimplemented — it is that the reimplementation, run honestly, produces a top-of-table that is a small-sample artifact, and the workbench is built to make that visible. Zero badges, no emoji headings, and a *Limits* section that states where the numbers stop and names the change that closes each gap.
+
+**Register pass (second round, per the author's correction).** The first draft stacked preemptive concessions: a proof-of-concept line above the fold, a *Known limits* list phrased as a bug report against the author's own work, "not trustworthy", "currently wrong, and the code path is live", "treat as placeholder", and an apologetic attribution in the AHPI README. All of it is gone. Every technical fact survived — AUC 0.455, the small-sample effect, the missing prior, the 996 kB chunk — restated as findings the author made and knows the fix for, rather than warnings about the author's reliability. The distinction held throughout: accurate operational qualifications stayed (Node version, port numbers, in-memory state, mock-mode labels in the UI), self-devaluation went, and nothing was replaced with adjectives in the other direction.
+
+The proof-of-concept sentence was deleted outright rather than kept — the author's correction supersedes the original brief on that point. A repo-wide sweep for the same class of phrasing (`proof of concept`, `not production ready`, `for demonstration purposes`, `rapid prototyping sprint`, `use at your own risk`, and the rest) returns clean across all tracked files.
 
 Other documentation:
 
@@ -78,7 +82,7 @@ Other documentation:
 - **`packages/frontend/README.md`** was the same 345-line slop as the root README. Replaced with a package-level README: entry points, commands, environment variables, source layout, what each view does.
 - **`api/README.md`** rewritten. The old one documented 8 endpoints; there are 25. It also gave an install order that cannot work (`pip install -e .` before the local packages it depends on) and a `docker build .` from `api/` that no longer matches the build context.
 - **`packages/pipeline/README.md`** rewritten to cover `matter_signals` and `document_parse`, which were absent, and to correct the install path and the config table.
-- **`packages/ahpi/README.md`** kept, with corrected install paths, an explicit statement that this is an independent reimplementation, and a caveat section about the missing regularization.
+- **`packages/ahpi/README.md`** kept, with corrected install paths, a one-line provenance statement, and a *Behaviour on sparse data* section describing what an unregularized fit does at low n.
 
 Every command and code example in every README was executed against a clean virtualenv or a clean `node_modules` before being committed. Two of them did not work and were fixed rather than reworded — see below.
 
@@ -120,13 +124,15 @@ Found while verifying documented behaviour, not sought out.
 5. **`packages/ahpi` had a failing test.** `test_stops_at_max_iterations` asserted `iteration <= 5` and got 6: `ConvergenceChecker.update` incremented `loop_number` before the cap check and reported the call that tripped the cap rather than the number of iterations that ran. The returned count is only used for logging in `model.py`, so capping the report changes no numerical behaviour. Fixed in `utils.py`; suite now 18/18.
 6. **Documented API surface did not exist.** `packages/ahpi/README.md` documented `fit_ahpi` and `cross_validate`, neither of which was exported from `ahpi/__init__.py`. They are real, tested functions, so they were exported (along with `compute_ranking_stability`, `create_interaction_dataframe`, `sample_interactions`) rather than removed from the docs.
 
+7. **Dead payload carrying a private solicitation.** `mockLlm.js` returned a `draftEmail` field holding a pre-written outreach message addressed to the paper's author by first name and signed `[Your Name]`, describing the project as "a small, shareable demo". Nothing in the frontend or API ever read the field. Removed — same class of artifact as the `demos/README.md` outreach plan, but shipping inside the application.
+
 Also cleaned: `your-org/legal-intelligence-platform` placeholder URLs in three `pyproject.toml` files and `api/app/main.py` now point at `github.com/logxio/dockets`; `{name = "Legal Intelligence Platform Team"}` replaced with `Yan Su <hi@yansu.me>`.
 
 ## Identity
 
 The forbidden strings — Puffy, nxsio, Nexus Studio, mine.ai, `y-su24@mails.tsinghua.edu.cn`, `susu-pro` — do not appear anywhere in the tree. Neither does `suapril`; the local absolute path that leaked through the sample JSON files went out with the root tree.
 
-One item needs a decision that was not mine to make: **`packages/ahpi/pyproject.toml` listed the paper's authors as the package authors, with their institutional email addresses** (`alexandre.mojon@unisg.ch`, `rmahari@mit.edu`). Publishing two third parties' addresses in a public repo is a privacy exposure, and listing them as authors of an independent reimplementation misstates provenance in the other direction. Both were replaced with `Yan Su <hi@yansu.me>`, and the academic credit was strengthened where it belongs: the module docstring now says "This is an independent reimplementation of the method described in…", the package README says the code is not theirs and not affiliated with them, and the citation stays in both.
+One item needs a decision that was not mine to make: **`packages/ahpi/pyproject.toml` listed the paper's authors as the package authors, with their institutional email addresses** (`alexandre.mojon@unisg.ch`, `rmahari@mit.edu`). Publishing two third parties' addresses in a public repo is a privacy exposure, and listing them as authors of an independent reimplementation misstates provenance in the other direction. Both were replaced with `Yan Su <hi@yansu.me>`, and the academic credit was strengthened where it belongs: the module docstring now says "This is an independent reimplementation of the method described in…", the package README states that the implementation is independent of the authors, and the citation stays in both.
 
 ## Deliberately not done
 

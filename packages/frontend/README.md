@@ -59,7 +59,7 @@ src/
 
 **Advanced** holds counterfactual what-if, A/B dataset comparison with delta views, the adjacency matrix, and LLM configuration.
 
-**Matters** is the only view that needs the API: upload a complaint, confirm the extracted brief, get ranked firms with evidence, export a decision pack. Read the win-rate caveat in the root README before trusting the numbers on that screen.
+**Matters** is the only view that needs the API: upload a complaint, confirm the extracted brief, get ranked firms with evidence, export a decision pack. The win rate on that screen is a passthrough from the source extract rather than a fitted prediction — see *Limits* in the root README.
 
 ## State in the URL
 

@@ -1,19 +1,17 @@
 # Legal Intelligence Workbench
 
-Law firm rankings computed from case outcomes instead of reputation surveys, plus the tooling to find out where those rankings are wrong.
+Law firm rankings computed from case outcomes instead of reputation surveys, and the instrument for auditing them.
 
 The model is a reimplementation of AHPI (Mahari et al., *Nature Computational Science*, 2025): treat every lawsuit as a pairwise contest between plaintiff counsel and defendant counsel, then fit firm strengths by EM alongside a per-case-type advantage for the defendant side. Run it on the paper's sample — 1,284 US federal civil cases, 1,966 firms, 2013–2018 — and the resulting order looks nothing like a Chambers table. Kirkland & Ellis lands at #878. Morrison & Foerster at #1541.
 
-Then look at the top of that table. Eight of the top ten firms appear in exactly one case; the median for the top 20 is 1.5 cases. Nothing in the estimator shrinks toward a prior, so a firm that wins its only lawsuit outscores every firm with a real track record. The fitted per-case-type parameters say the same thing from the other end: valence probabilities settle on 0.9999999 or 4e-41, and `real_property` — six cases — draws a privilege term of +3.94. That is unregularized MLE walking to the boundary on sparse strata.
+That reordering is the headline, and it does not survive contact with the evidence counts. Eight of the top ten firms appear in exactly one case; the median for the top 20 is 1.5. The estimator carries no prior, so a firm that wins its only lawsuit outscores every firm with a real track record. The fitted per-case-type parameters show the same thing from the other end: valence probabilities settle on 0.9999999 or 4e-41, and `real_property` — six cases — draws a privilege term of +3.94. Unregularized MLE walking to the boundary on sparse strata.
 
-So the ranking is not the deliverable. The workbench is. It puts an evidence count next to every score, drills from any claim down to the case IDs behind it, and re-fits on randomized outcomes so you can see how much of a pattern survives the null.
+Which is why the workbench is the deliverable and the ranking is an input to it. Every score carries its evidence count, every claim drills to the case IDs behind it, and a null-control pass re-fits on randomized outcomes to show how much of a pattern is real. A ranking you can interrogate beats a ranking you have to trust.
 
 <p align="center">
   <img src="./docs/demo1.GIF" alt="Network view: plaintiff-defendant graph with evidence drill-down" width="100%">
   <img src="./docs/demo2.GIF" alt="Rankings and report views" width="100%">
 </p>
-
-This is a proof-of-concept built in a rapid prototyping sprint, and an unofficial implementation — it is not affiliated with the paper's authors.
 
 ## The model
 
@@ -76,15 +74,19 @@ The report view can send filtered rows to an OpenAI-compatible endpoint and requ
 
 Two things to know before reading anything off the sample. Outcomes are 79.6% plaintiff wins at the case level, so a global fit is largely fitting one class; the QC panel flags this and suggests stratifying. And the `Court` column is empty for every row, so the court filter has nothing to work with — court-level stratification needs a different extract.
 
-## Known limits
+## Limits
 
-- No shrinkage or regularization in the fit. Firms with one or two cases dominate the top of the ranking. Filter by evidence count before drawing conclusions, or add a Beta prior on `q` and an L2 penalty on `λ`.
-- Settlements are unobserved. Every case in the data has a winner, which is not how litigation ends most of the time.
-- The win rate the Matters view shows for a recommended firm is not trustworthy. It is derived from the sample's `PredDefWinProba` column, which scores AUC 0.455 against the actual winner — below chance. Details and the fix in [`packages/pipeline/DESIGN.md`](packages/pipeline/DESIGN.md).
-- `pnpm build` emits a ~996 kB workbench chunk. Cytoscape and Recharts are the bulk of it. It has not been split.
-- Matter state is in-process on the API. Restart and it is gone.
+Where the numbers stop, and what closes each gap.
+
+- **No prior in the fit.** One- and two-case firms reach extreme scores, which is what puts the top of the ranking where it is. Sorting by evidence count gives a usable table today; a Beta prior on `q` and an L2 penalty on `λ` fix it at the source.
+- **Settlements are unobserved.** Every case in the data has a winner. Most litigation does not end that way, so the fit describes cases that reached judgment, not the market.
+- **The Matters win rate is a passthrough.** It carries the source extract's `PredDefWinProba` column, which scores AUC 0.455 against the actual winner — that column is a selection weight, not a fitted prediction. The replacement, an empirical rate shrunk toward the case-type base, is specified in [`packages/pipeline/DESIGN.md`](packages/pipeline/DESIGN.md).
+- **One 996 kB workbench chunk.** Cytoscape plus Recharts. Splitting it is build configuration, not a rewrite.
+- **Matter state is in-process.** The API holds matters and fits in memory; there is no persistence layer, so a restart clears them.
 
 ## Reference
+
+The method is Mahari et al.; this implementation is independent of the authors.
 
 Mahari, R., et al. (2025). *Data-Driven Law Firm Rankings to Reduce Information Asymmetry in Legal Disputes.* Nature Computational Science. [arXiv:2408.16863](https://arxiv.org/abs/2408.16863v2)
 
