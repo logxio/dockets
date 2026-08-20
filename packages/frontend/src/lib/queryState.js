@@ -2,7 +2,6 @@ export function readQueryState(search) {
   const sp = new URLSearchParams(search);
   const view = sp.get("view") ?? undefined;
   const demo = sp.get("demo") ?? undefined;
-  const lang = sp.get("lang") ?? undefined;
   const theme = sp.get("theme") ?? undefined;
 
   const fdr = sp.get("fdr");
@@ -31,13 +30,12 @@ export function readQueryState(search) {
   if (typeof focusCell === "string") filters.focusCell = focusCell;
   if (focusMode === "any" || focusMode === "incoming" || focusMode === "outgoing") filters.focusMode = focusMode;
 
-  return { view, demo, lang, theme, filters };
+  return { view, demo, theme, filters };
 }
 
-export function writeQueryState({ view, filters, demo, lang, theme }) {
+export function writeQueryState({ view, filters, demo, theme }) {
   const sp = new URLSearchParams();
   if (demo === true) sp.set("demo", "1");
-  if (typeof lang === "string" && lang) sp.set("lang", lang);
   if (theme === "light" || theme === "dark") sp.set("theme", theme);
   sp.set("view", view);
   if (typeof filters.fdrMax === "number") sp.set("fdr", String(filters.fdrMax));

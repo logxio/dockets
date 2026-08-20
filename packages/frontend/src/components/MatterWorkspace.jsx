@@ -42,11 +42,11 @@ import {
 // ============================================================
 
 const CASE_TYPES = [
-  { value: "contract", zh: "合同纠纷", en: "Contract" },
-  { value: "civil_rights", zh: "民权案件", en: "Civil Rights" },
-  { value: "labor", zh: "劳动争议", en: "Labor" },
-  { value: "torts", zh: "侵权案件", en: "Torts" },
-  { value: "other", zh: "其他", en: "Other" },
+  { value: "contract", label: "Contract" },
+  { value: "civil_rights", label: "Civil Rights" },
+  { value: "labor", label: "Labor" },
+  { value: "torts", label: "Torts" },
+  { value: "other", label: "Other" },
 ];
 
 const COURTS = [
@@ -70,26 +70,25 @@ const BUDGET_PRESETS = [
 ];
 
 const TABS = [
-  { key: "brief", icon: FileText, zh: "1. 案情", en: "1. Brief" },
-  { key: "candidates", icon: Users, zh: "2. 推荐律所", en: "2. Firms" },
-  { key: "compare", icon: GitCompare, zh: "3. 对比", en: "3. Compare" },
-  { key: "pack", icon: Package, zh: "4. 报告", en: "4. Report" },
-  { key: "audit", icon: ClipboardList, zh: "审计", en: "Audit" },
+  { key: "brief", icon: FileText, label: "1. Brief" },
+  { key: "candidates", icon: Users, label: "2. Firms" },
+  { key: "compare", icon: GitCompare, label: "3. Compare" },
+  { key: "pack", icon: Package, label: "4. Report" },
+  { key: "audit", icon: ClipboardList, label: "Audit" },
 ];
 
 // ============================================================
 // Helper Components
 // ============================================================
 
-function ProgressIndicator({ current, total, lang }) {
-  const tx = (zh, en) => (lang === "en" ? en : zh);
+function ProgressIndicator({ current, total }) {
   return (
     <div className="progress-indicator">
       <div className="progress-bar-bg">
         <div className="progress-bar-fill" style={{ width: `${(current / total) * 100}%` }} />
       </div>
       <span className="progress-text">
-        {tx(`步骤 ${current}/${total}`, `Step ${current}/${total}`)}
+        {`Step ${current}/${total}`}
       </span>
     </div>
   );
@@ -122,8 +121,7 @@ function LoadingState({ text }) {
 // Brief Tab - Simplified with smart defaults
 // ============================================================
 
-function BriefTab({ matter, lang, onUpdate, saving, onNext }) {
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
+function BriefTab({ matter, onUpdate, saving, onNext }) {
   const brief = matter?.brief || {};
 
   const handleFieldChange = (field, value) => {
@@ -144,15 +142,15 @@ function BriefTab({ matter, lang, onUpdate, saving, onNext }) {
   return (
     <div className="tab-content brief-tab">
       <div className="brief-header">
-        <h2 title={tx("选择关键信息，系统将自动推荐最合适的律所", "Select key info and we'll recommend the best firms")}>
-          {tx("填写案情信息", "Case Information")}
+        <h2 title="Select key info and we'll recommend the best firms">
+          Case Information
         </h2>
       </div>
 
       <div className="brief-form">
         {/* Court Selection - Visual Cards */}
         <div className="form-section">
-          <label className="form-label">{tx("法院", "Court")} *</label>
+          <label className="form-label">Court *</label>
           <div className="option-grid">
             {COURTS.map((court) => (
               <button
@@ -167,18 +165,18 @@ function BriefTab({ matter, lang, onUpdate, saving, onNext }) {
             <button
               className={`option-card ${brief.court && !COURTS.find((c) => c.value === brief.court) ? "selected" : ""}`}
               onClick={() => {
-                const custom = prompt(tx("输入法院名称", "Enter court name"));
+                const custom = prompt("Enter court name");
                 if (custom) handleFieldChange("court", custom);
               }}
             >
-              <span className="option-card-value">{tx("其他...", "Other...")}</span>
+              <span className="option-card-value">Other...</span>
             </button>
           </div>
         </div>
 
         {/* Case Type - Visual Cards */}
         <div className="form-section">
-          <label className="form-label">{tx("案由", "Case Type")} *</label>
+          <label className="form-label">Case Type *</label>
           <div className="option-grid">
             {CASE_TYPES.map((ct) => (
               <button
@@ -186,7 +184,7 @@ function BriefTab({ matter, lang, onUpdate, saving, onNext }) {
                 className={`option-card ${brief.caseType === ct.value ? "selected" : ""}`}
                 onClick={() => handleFieldChange("caseType", ct.value)}
               >
-                <span className="option-card-value">{lang === "en" ? ct.en : ct.zh}</span>
+                <span className="option-card-value">{ct.label}</span>
               </button>
             ))}
           </div>
@@ -194,26 +192,26 @@ function BriefTab({ matter, lang, onUpdate, saving, onNext }) {
 
         {/* Role - Simple Toggle */}
         <div className="form-section">
-          <label className="form-label">{tx("您的角色", "Your Role")} *</label>
+          <label className="form-label">Your Role *</label>
           <div className="role-toggle">
             <button
               className={`role-btn ${brief.role === "defendant" ? "selected" : ""}`}
               onClick={() => handleFieldChange("role", "defendant")}
             >
-              {tx("被告", "Defendant")}
+              Defendant
             </button>
             <button
               className={`role-btn ${brief.role === "plaintiff" ? "selected" : ""}`}
               onClick={() => handleFieldChange("role", "plaintiff")}
             >
-              {tx("原告", "Plaintiff")}
+              Plaintiff
             </button>
           </div>
         </div>
 
         {/* Budget - Quick Select */}
         <div className="form-section">
-          <label className="form-label">{tx("预算范围", "Budget Range")}</label>
+          <label className="form-label">Budget Range</label>
           <div className="budget-pills">
             {BUDGET_PRESETS.map((b) => (
               <button
@@ -229,11 +227,11 @@ function BriefTab({ matter, lang, onUpdate, saving, onNext }) {
 
         {/* Opponent - Optional, simple input */}
         <div className="form-section">
-          <label className="form-label">{tx("对方名称（可选）", "Opponent (optional)")}</label>
+          <label className="form-label">Opponent (optional)</label>
           <input
             type="text"
             className="form-input"
-            placeholder={tx("例如：Acme Corp", "e.g., Acme Corp")}
+            placeholder="e.g., Acme Corp"
             value={brief.opponentName || ""}
             onChange={(e) => handleFieldChange("opponentName", e.target.value)}
           />
@@ -244,22 +242,22 @@ function BriefTab({ matter, lang, onUpdate, saving, onNext }) {
         <div className="brief-status">
           {isComplete ? (
             <span className="status-complete">
-              <Check size={16} /> {tx("信息完整", "Complete")}
+              <Check size={16} /> Complete
             </span>
           ) : (
             <span className="status-incomplete">
-              {tx("请完成必填项", "Please complete required fields")}
+              Please complete required fields
             </span>
           )}
         </div>
         <button className="btn primary large" onClick={onNext} disabled={!isComplete || saving}>
           {saving ? (
             <>
-              <RefreshCw size={16} className="spin" /> {tx("保存中...", "Saving...")}
+              <RefreshCw size={16} className="spin" /> Saving...
             </>
           ) : (
             <>
-              {tx("获取推荐律所", "Get Firm Recommendations")} <ChevronRight size={16} />
+              Get Firm Recommendations <ChevronRight size={16} />
             </>
           )}
         </button>
@@ -272,8 +270,7 @@ function BriefTab({ matter, lang, onUpdate, saving, onNext }) {
 // Candidates Tab - Auto-recommend, easy select
 // ============================================================
 
-function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
+function CandidatesTab({ matterId, onShowToast, onNext }) {
 
   const [candidates, setCandidatesState] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -344,7 +341,7 @@ function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
   if (loading || recommending) {
     return (
       <LoadingState
-        text={recommending ? tx("正在分析并推荐律所...", "Analyzing and recommending firms...") : tx("加载中...", "Loading...")}
+        text={recommending ? "Analyzing and recommending firms..." : "Loading..."}
       />
     );
   }
@@ -355,7 +352,7 @@ function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
         icon={AlertCircle}
         title={error}
         action={doRecommend}
-        actionLabel={tx("重新推荐", "Retry")}
+        actionLabel="Retry"
       />
     );
   }
@@ -364,9 +361,9 @@ function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
     return (
       <EmptyState
         icon={Users}
-        title={tx("暂无推荐，请先完善案情", "No recommendations, complete case info first")}
+        title="No recommendations, complete case info first"
         action={doRecommend}
-        actionLabel={tx("获取推荐", "Get Recommendations")}
+        actionLabel="Get Recommendations"
       />
     );
   }
@@ -374,12 +371,12 @@ function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
   return (
     <div className="tab-content candidates-tab">
       <div className="candidates-header">
-        <h2 title={tx(`已选择 ${selectedCount} 家律所进行对比`, `${selectedCount} firms selected for comparison`)}>
-          {tx("推荐律所", "Recommended Firms")}
+        <h2 title={`${selectedCount} firms selected for comparison`}>
+          Recommended Firms
         </h2>
         <button className="btn" onClick={doRecommend} disabled={recommending}>
           <RefreshCw size={14} className={recommending ? "spin" : ""} />
-          {tx("重新推荐", "Refresh")}
+          Refresh
         </button>
       </div>
 
@@ -394,19 +391,19 @@ function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
 	                {c.firm}
 	                {c.tier === "recommended" && (
 	                  <span className="candidate-badge recommended">
-	                    <Star size={12} /> {tx("推荐", "Top")}
+	                    <Star size={12} /> Top
 	                  </span>
 	                )}
 	              </div>
 	              <div className="candidate-stats">
 	                {c.signals?.outcomeLiftPct != null && (
 	                  <span className="candidate-stat positive">
-	                    <Trophy size={12} /> +{c.signals.outcomeLiftPct}% {tx("胜率提升", "win rate")}
+	                    <Trophy size={12} /> +{c.signals.outcomeLiftPct}% win rate
 	                  </span>
 	                )}
 	                {c.signals?.evidenceCount != null && (
 	                  <span className="candidate-stat">
-	                    <FileText size={12} /> {c.signals.evidenceCount} {tx("案例", "cases")}
+	                    <FileText size={12} /> {c.signals.evidenceCount} cases
 	                  </span>
 	                )}
 	                {c.cost?.hourlyRateUsd != null && (
@@ -418,15 +415,15 @@ function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
 	              {c.explain?.reasons?.length ? (
 	                <div className="candidate-explain" onClick={(e) => e.stopPropagation()}>
 	                  <details>
-	                    <summary>{tx("为什么推荐？", "Why recommended?")}</summary>
+	                    <summary>Why recommended?</summary>
 	                    <div className="candidate-explain-meta">
-	                      {tx("置信度", "Confidence")}: {c.explain?.confidence?.level || "unknown"}
+	                      Confidence: {c.explain?.confidence?.level || "unknown"}
 	                      {typeof c.explain?.confidence?.nEvidenceCases === "number" ? (
 	                        <>
 	                          {" "}· n={c.explain.confidence.nEvidenceCases}
 	                        </>
 	                      ) : null}
-	                      {c.explain?.confidence?.usedHeadToHead ? <> · {tx("含对手对抗证据", "head-to-head")}</> : null}
+	                      {c.explain?.confidence?.usedHeadToHead ? <> · head-to-head</> : null}
 	                    </div>
 	                    <div className="candidate-explain-reasons">
 	                      {c.explain.reasons.slice(0, 3).map((r) => (
@@ -459,9 +456,9 @@ function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
 
       <div className="candidates-footer">
         <button className="btn primary large" onClick={onNext} disabled={selectedCount < 2}>
-          {selectedCount < 2 ? tx("至少选择2家律所", "Select at least 2 firms") : (
+          {selectedCount < 2 ? "Select at least 2 firms" : (
             <>
-              {tx("对比所选律所", "Compare Selected")} <ChevronRight size={16} />
+              Compare Selected <ChevronRight size={16} />
             </>
           )}
         </button>
@@ -474,8 +471,7 @@ function CandidatesTab({ matterId, lang, onShowToast, onNext }) {
 // Compare Tab - Auto-generated comparison
 // ============================================================
 
-function CompareTab({ matterId, lang, onNext }) {
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
+function CompareTab({ matterId, onNext }) {
 
   const [candidates, setCandidatesState] = React.useState([]);
   const [evidence, setEvidence] = React.useState([]);
@@ -536,7 +532,7 @@ function CompareTab({ matterId, lang, onNext }) {
   }, [matterId, loadEvidence]);
 
   if (loading) {
-    return <LoadingState text={tx("加载对比数据...", "Loading comparison data...")} />;
+    return <LoadingState text="Loading comparison data..." />;
   }
 
   if (error) {
@@ -547,7 +543,7 @@ function CompareTab({ matterId, lang, onNext }) {
     return (
       <EmptyState
         icon={GitCompare}
-        title={tx("请先选择候选律所", "Please select candidate firms first")}
+        title="Please select candidate firms first"
       />
     );
   }
@@ -568,14 +564,11 @@ function CompareTab({ matterId, lang, onNext }) {
     <div className="tab-content compare-tab">
       <div className="compare-header">
         <div>
-          <h2 title={tx("基于离线快照数据的分析结果，所有关键结论均可回溯到 CaseId", "Analysis on offline snapshot; key claims cite CaseIds")}>
-            {tx("律所对比", "Firm Comparison")}
+          <h2 title="Analysis on offline snapshot; key claims cite CaseIds">
+            Firm Comparison
           </h2>
           <div className="compare-subtitle">
-            {tx(
-              `已选择 ${sorted.length} 家律所（证据驱动解释，可点开查看引用）`,
-              `${sorted.length} firms selected (evidence-driven explainability with citations)`
-            )}
+            {`${sorted.length} firms selected (evidence-driven explainability with citations)`}
           </div>
         </div>
       </div>
@@ -587,33 +580,33 @@ function CompareTab({ matterId, lang, onNext }) {
               <Trophy size={20} />
             </div>
             <div className="compare-winner-main">
-              <div className="compare-winner-label">{tx("推荐首选", "Top Recommendation")}</div>
+              <div className="compare-winner-label">Top Recommendation</div>
               <div className="compare-winner-name">{bestFirm.firm}</div>
             </div>
             <div className="compare-winner-stat">
-              {formatSignedPct(bestFirm.signals?.outcomeLiftPct || 0)} {tx("胜率提升", "win rate lift")}
+              {formatSignedPct(bestFirm.signals?.outcomeLiftPct || 0)} win rate lift
             </div>
           </div>
 
           <div className="compare-winner-metrics">
             <div className="compare-metric">
-              <div className="compare-metric-label">{tx("证据数量", "Evidence")}</div>
+              <div className="compare-metric-label">Evidence</div>
               <div className="compare-metric-value">{bestEvidence}</div>
             </div>
             <div className="compare-metric">
-              <div className="compare-metric-label">{tx("置信度", "Confidence")}</div>
+              <div className="compare-metric-label">Confidence</div>
               <div className="compare-metric-value">
                 <span className={`confidence ${bestFirm.signals?.confidence || "low"}`}>
                   {bestFirm.signals?.confidence === "high"
-                    ? tx("高", "High")
+                    ? "High"
                     : bestFirm.signals?.confidence === "medium"
-                      ? tx("中", "Medium")
-                      : tx("低", "Low")}
+                      ? "Medium"
+                      : "Low"}
                 </span>
               </div>
             </div>
             <div className="compare-metric">
-              <div className="compare-metric-label">{tx("与第2名差距", "Gap vs #2")}</div>
+              <div className="compare-metric-label">Gap vs #2</div>
               <div className="compare-metric-value">{formatSignedPct(liftGap)}</div>
             </div>
           </div>
@@ -622,13 +615,13 @@ function CompareTab({ matterId, lang, onNext }) {
 
       {bestFirm?.explain?.reasons?.length ? (
         <div className="compare-explain compare-block card pad">
-          <div className="compare-section-title">{tx("可解释性（证据驱动）", "Explainability (evidence-driven)")}</div>
+          <div className="compare-section-title">Explainability (evidence-driven)</div>
           <div className="compare-explain-meta muted">
-            {tx("置信度", "Confidence")}: {bestFirm.explain?.confidence?.level || "unknown"}
+            Confidence: {bestFirm.explain?.confidence?.level || "unknown"}
             {typeof bestFirm.explain?.confidence?.nEvidenceCases === "number" ? (
               <> · n={bestFirm.explain.confidence.nEvidenceCases}</>
             ) : null}
-            {bestFirm.explain?.confidence?.usedHeadToHead ? <> · {tx("含对手对抗证据", "head-to-head")}</> : null}
+            {bestFirm.explain?.confidence?.usedHeadToHead ? <> · head-to-head</> : null}
           </div>
           <div className="compare-explain-reasons">
             {bestFirm.explain.reasons.slice(0, 3).map((r) => (
@@ -653,9 +646,9 @@ function CompareTab({ matterId, lang, onNext }) {
       <div className="compare-table-card compare-block card">
         <div className="compare-table-header">
           <div>
-            <div className="compare-section-title">{tx("对比表", "Comparison Table")}</div>
+            <div className="compare-section-title">Comparison Table</div>
             <div className="muted compare-table-subtitle">
-              {tx("按胜率提升排序（仅离线快照）", "Sorted by win-rate lift (offline snapshot only)")}
+              Sorted by win-rate lift (offline snapshot only)
             </div>
           </div>
         </div>
@@ -665,11 +658,11 @@ function CompareTab({ matterId, lang, onNext }) {
             <thead>
               <tr>
                 <th>#</th>
-                <th>{tx("律所", "Firm")}</th>
-                <th>{tx("胜率提升", "Win Rate Lift")}</th>
-                <th>{tx("证据数量", "Evidence")}</th>
-                <th>{tx("费率", "Hourly Rate")}</th>
-                <th>{tx("置信度", "Confidence")}</th>
+                <th>Firm</th>
+                <th>Win Rate Lift</th>
+                <th>Evidence</th>
+                <th>Hourly Rate</th>
+                <th>Confidence</th>
               </tr>
             </thead>
             <tbody>
@@ -688,10 +681,10 @@ function CompareTab({ matterId, lang, onNext }) {
                         <td className="compare-cell">
                           <span className={`confidence ${c.signals?.confidence || "low"}`}>
                             {c.signals?.confidence === "high"
-                              ? tx("高", "High")
+                              ? "High"
                               : c.signals?.confidence === "medium"
-                                ? tx("中", "Medium")
-                                : tx("低", "Low")}
+                                ? "Medium"
+                                : "Low"}
                           </span>
                         </td>
                       </tr>
@@ -704,15 +697,15 @@ function CompareTab({ matterId, lang, onNext }) {
 
       {/* Evidence preview */}
       <div ref={evidenceRef} className="evidence-section compare-block card pad">
-        <div className="compare-section-title">{tx("相似案例参考", "Similar Cases")}</div>
+        <div className="compare-section-title">Similar Cases</div>
         <div className="muted compare-evidence-subtitle">
-          {tx("用于支撑可解释性：点击 CaseId 过滤查看", "Supports explainability: click CaseId to filter")}
+          Supports explainability: click CaseId to filter
         </div>
         {activeCaseId != null ? (
           <div className="compare-evidence-filter">
             <span className="pill">CaseId {activeCaseId}</span>
             <button className="btn small" onClick={clearEvidenceFilter} type="button">
-              {tx("清除过滤", "Clear filter")}
+              Clear filter
             </button>
           </div>
         ) : null}
@@ -743,15 +736,15 @@ function CompareTab({ matterId, lang, onNext }) {
                   <span>{e.year}</span>
                   <span className={`outcome ${outcomeLabel}`}>
                     {outcomeLabel === "defendant_win"
-                      ? tx("被告胜", "Def Win")
+                      ? "Def Win"
                       : outcomeLabel === "plaintiff_win"
-                        ? tx("原告胜", "Plt Win")
-                        : tx("未知", "Unknown")}
+                        ? "Plt Win"
+                        : "Unknown"}
                   </span>
                   <button className="pill clickable" type="button" onClick={() => openEvidenceFilter(e.caseId)}>
                     CaseId {e.caseId}
                   </button>
-                  <span className="similarity">{Math.round((e.similarity || 0) * 100)}% {tx("相似", "similar")}</span>
+                  <span className="similarity">{Math.round((e.similarity || 0) * 100)}% similar</span>
                 </div>
               </div>
                 );
@@ -760,14 +753,14 @@ function CompareTab({ matterId, lang, onNext }) {
           </div>
         ) : (
           <div className="compare-evidence-empty muted">
-            {tx("未找到匹配的案例（可能不在当前快照里）", "No matching cases (may be missing from snapshot)")}
+            No matching cases (may be missing from snapshot)
           </div>
         )}
       </div>
 
       <div className="compare-footer">
         <button className="btn primary large" onClick={onNext}>
-          {tx("生成决策报告", "Generate Decision Report")} <ChevronRight size={16} />
+          Generate Decision Report <ChevronRight size={16} />
         </button>
       </div>
     </div>
@@ -778,8 +771,7 @@ function CompareTab({ matterId, lang, onNext }) {
 // Decision Pack Tab - One-click generation
 // ============================================================
 
-function PackTab({ matterId, lang, onShowToast }) {
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
+function PackTab({ matterId, onShowToast }) {
 
   const [packs, setPacks] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -815,7 +807,7 @@ function PackTab({ matterId, lang, onShowToast }) {
         onProgress: (p) => setProgress(Math.round(p * 100)),
       });
       await loadPacks();
-      onShowToast?.(tx("报告已生成", "Report generated"));
+      onShowToast?.("Report generated");
     } catch (err) {
       setError(err.message);
       onShowToast?.(err.message);
@@ -825,7 +817,7 @@ function PackTab({ matterId, lang, onShowToast }) {
   };
 
   if (loading) {
-    return <LoadingState text={tx("加载报告...", "Loading reports...")} />;
+    return <LoadingState text="Loading reports..." />;
   }
 
   if (error && packs.length === 0) {
@@ -834,7 +826,7 @@ function PackTab({ matterId, lang, onShowToast }) {
         icon={AlertCircle}
         title={error}
         action={loadPacks}
-        actionLabel={tx("重试", "Retry")}
+        actionLabel="Retry"
       />
     );
   }
@@ -842,8 +834,8 @@ function PackTab({ matterId, lang, onShowToast }) {
   return (
     <div className="tab-content pack-tab">
       <div className="pack-header">
-        <h2 title={tx("一键生成可分享的律所选择报告", "Generate a shareable firm selection report")}>
-          {tx("决策报告", "Decision Report")}
+        <h2 title="Generate a shareable firm selection report">
+          Decision Report
         </h2>
       </div>
 
@@ -853,12 +845,12 @@ function PackTab({ matterId, lang, onShowToast }) {
           {generating ? (
             <>
               <RefreshCw size={20} className="spin" />
-              <span>{tx("生成中...", "Generating...")} {progress}%</span>
+              <span>Generating... {progress}%</span>
             </>
           ) : (
             <>
               <Sparkles size={20} />
-              <span>{tx("一键生成报告", "Generate Report")}</span>
+              <span>Generate Report</span>
             </>
           )}
         </button>
@@ -872,14 +864,14 @@ function PackTab({ matterId, lang, onShowToast }) {
       {/* Pack list */}
       {packs.length > 0 && (
         <div className="pack-list">
-          <h3>{tx("历史版本", "Version History")}</h3>
+          <h3>Version History</h3>
           {packs.map((pack) => (
             <div key={pack.id} className="pack-item">
               <div className="pack-item-info">
                 <div className="pack-item-version">v{pack.version}</div>
                 <div className="pack-item-date">
                   <Clock size={12} />
-                  {new Date(pack.createdAt).toLocaleString(lang === "en" ? "en-US" : "zh-CN")}
+                  {new Date(pack.createdAt).toLocaleString("en-US")}
                 </div>
               </div>
               <div className="pack-item-actions">
@@ -889,10 +881,10 @@ function PackTab({ matterId, lang, onShowToast }) {
                   rel="noopener noreferrer"
                   className="btn small"
                 >
-                  <ExternalLink size={14} /> {tx("查看", "View")}
+                  <ExternalLink size={14} /> View
                 </a>
                 <a href={getPackExportHtmlUrl(matterId, pack.id)} download className="btn small">
-                  <Download size={14} /> {tx("下载", "Download")}
+                  <Download size={14} /> Download
                 </a>
               </div>
             </div>
@@ -913,8 +905,7 @@ function PackTab({ matterId, lang, onShowToast }) {
 // Audit Tab - Simple log view
 // ============================================================
 
-function AuditTab({ matterId, lang }) {
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
+function AuditTab({ matterId }) {
 
   const [events, setEvents] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -935,36 +926,36 @@ function AuditTab({ matterId, lang }) {
   }, [matterId]);
 
   if (loading) {
-    return <LoadingState text={tx("加载日志...", "Loading logs...")} />;
+    return <LoadingState text="Loading logs..." />;
   }
 
   if (events.length === 0) {
     return (
       <EmptyState
         icon={ClipboardList}
-        title={tx("暂无操作记录", "No activity yet")}
+        title="No activity yet"
       />
     );
   }
 
   const actionLabels = {
-    matter_created: tx("创建案件", "Matter created"),
-    matter_updated: tx("更新案件", "Matter updated"),
-    brief_updated: tx("更新案情", "Brief updated"),
-    candidates_set: tx("更新候选律所", "Candidates updated"),
-    candidates_updated: tx("更新候选律所", "Candidates updated"),
-    pack_generated: tx("生成报告", "Report generated"),
+    matter_created: "Matter created",
+    matter_updated: "Matter updated",
+    brief_updated: "Brief updated",
+    candidates_set: "Candidates updated",
+    candidates_updated: "Candidates updated",
+    pack_generated: "Report generated",
   };
 
   return (
     <div className="tab-content audit-tab">
-      <h2>{tx("操作记录", "Activity Log")}</h2>
+      <h2>Activity Log</h2>
       <div className="audit-list">
         {events.map((e) => (
           <div key={e.id} className="audit-item">
-            <div className="audit-time">{new Date(e.at).toLocaleString(lang === "en" ? "en-US" : "zh-CN")}</div>
+            <div className="audit-time">{new Date(e.at).toLocaleString("en-US")}</div>
             <div className="audit-action">{actionLabels[e.action] || e.action}</div>
-            <div className="audit-actor">{e.actor?.name || tx("系统", "System")}</div>
+            <div className="audit-actor">{e.actor?.name || "System"}</div>
           </div>
         ))}
       </div>
@@ -976,8 +967,7 @@ function AuditTab({ matterId, lang }) {
 // Main Workspace Component
 // ============================================================
 
-export default function MatterWorkspace({ matterId, lang = "zh", onBack, onShowToast }) {
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
+export default function MatterWorkspace({ matterId, onBack, onShowToast }) {
 
   const [matter, setMatter] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -993,11 +983,11 @@ export default function MatterWorkspace({ matterId, lang = "zh", onBack, onShowT
       const data = await getMatter(matterId);
       setMatter(data);
     } catch (err) {
-      setError(err.message || tx("加载失败", "Failed to load"));
+      setError(err.message || "Failed to load");
     } finally {
       setLoading(false);
     }
-  }, [matterId, tx]);
+  }, [matterId]);
 
   React.useEffect(() => {
     loadMatter();
@@ -1012,13 +1002,13 @@ export default function MatterWorkspace({ matterId, lang = "zh", onBack, onShowT
         setMatter(updated);
         return updated;
       } catch (err) {
-        onShowToast?.(err.message || tx("保存失败", "Save failed"));
+        onShowToast?.(err.message || "Save failed");
         throw err;
       } finally {
         setSaving(false);
       }
     },
-    [matterId, tx, onShowToast]
+    [matterId, onShowToast]
   );
 
   const goNext = () => {
@@ -1032,7 +1022,7 @@ export default function MatterWorkspace({ matterId, lang = "zh", onBack, onShowT
   if (loading) {
     return (
       <div className="workspace">
-        <LoadingState text={tx("加载案件...", "Loading matter...")} />
+        <LoadingState text="Loading matter..." />
       </div>
     );
   }
@@ -1042,13 +1032,13 @@ export default function MatterWorkspace({ matterId, lang = "zh", onBack, onShowT
       <div className="workspace">
         <div className="workspace-error-full">
           <AlertCircle size={48} />
-          <h2>{error || tx("案件不存在", "Matter not found")}</h2>
+          <h2>{error || "Matter not found"}</h2>
           <div className="workspace-error-actions">
             <button className="btn" onClick={onBack}>
-              {tx("返回", "Go Back")}
+              Go Back
             </button>
             <button className="btn primary" onClick={loadMatter}>
-              {tx("重试", "Retry")}
+              Retry
             </button>
           </div>
         </div>
@@ -1062,14 +1052,14 @@ export default function MatterWorkspace({ matterId, lang = "zh", onBack, onShowT
     <div className="workspace">
       <div className="workspace-header">
         <div className="workspace-header-left">
-          <button className="workspace-back" onClick={onBack} title={tx("返回列表", "Back to list")}>
+          <button className="workspace-back" onClick={onBack} title="Back to list">
             <ArrowLeft size={20} />
           </button>
           <div className="workspace-title-group">
-            <h1 className="workspace-title">{matter.name || tx("未命名案件", "Untitled Matter")}</h1>
+            <h1 className="workspace-title">{matter.name || "Untitled Matter"}</h1>
           </div>
         </div>
-        {activeTab !== "audit" && <ProgressIndicator current={tabIndex} total={4} lang={lang} />}
+        {activeTab !== "audit" && <ProgressIndicator current={tabIndex} total={4} />}
       </div>
 
       <div className="workspace-tabs">
@@ -1079,7 +1069,7 @@ export default function MatterWorkspace({ matterId, lang = "zh", onBack, onShowT
           return (
             <button key={tab.key} className={`workspace-tab ${isActive ? "active" : ""}`} onClick={() => setActiveTab(tab.key)}>
               <Icon size={16} />
-              <span>{lang === "en" ? tab.en : tab.zh}</span>
+              <span>{tab.label}</span>
             </button>
           );
         })}
@@ -1087,14 +1077,14 @@ export default function MatterWorkspace({ matterId, lang = "zh", onBack, onShowT
 
       <div className="workspace-content">
         {activeTab === "brief" && (
-          <BriefTab matter={matter} lang={lang} onUpdate={handleUpdateMatter} saving={saving} onNext={goNext} />
+          <BriefTab matter={matter} onUpdate={handleUpdateMatter} saving={saving} onNext={goNext} />
         )}
         {activeTab === "candidates" && (
-          <CandidatesTab matterId={matterId} lang={lang} onShowToast={onShowToast} onNext={goNext} />
+          <CandidatesTab matterId={matterId} onShowToast={onShowToast} onNext={goNext} />
         )}
-        {activeTab === "compare" && <CompareTab matterId={matterId} lang={lang} onNext={goNext} />}
-        {activeTab === "pack" && <PackTab matterId={matterId} lang={lang} onShowToast={onShowToast} />}
-        {activeTab === "audit" && <AuditTab matterId={matterId} lang={lang} />}
+        {activeTab === "compare" && <CompareTab matterId={matterId} onNext={goNext} />}
+        {activeTab === "pack" && <PackTab matterId={matterId} onShowToast={onShowToast} />}
+        {activeTab === "audit" && <AuditTab matterId={matterId} />}
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import React from "react";
-import { useI18n } from "../lib/i18n";
 
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
@@ -21,7 +20,6 @@ function divergeColor(t) {
 }
 
 export default function DeltaMatrixView({ matrix, selectedCell, onSelectCell }) {
-  const { tx } = useI18n();
   const [sortBy, setSortBy] = React.useState("absDeltaSum");
 
   const senderSum = new Map();
@@ -44,15 +42,15 @@ export default function DeltaMatrixView({ matrix, selectedCell, onSelectCell }) 
   return (
     <div>
       <div className="row split" style={{ marginBottom: 10 }}>
-        <div className="pill">{tx("热图：Δ(B-A)", "Heatmap: Δ(B-A)")}</div>
+        <div className="pill">Heatmap: Δ(B-A)</div>
         <div className="row" style={{ gap: 8 }}>
           <span className="muted" style={{ fontSize: 12 }}>
-            {tx("排序", "Sort")}
+            Sort
           </span>
           <select className="select" style={{ width: 220 }} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="senderAbs">{tx("按原告 Σ|Δ|", "By plaintiff Σ|Δ|")}</option>
-            <option value="receiverAbs">{tx("按被告 Σ|Δ|", "By defendant Σ|Δ|")}</option>
-            <option value="absDeltaSum">{tx("不排序", "No sort")}</option>
+            <option value="senderAbs">By plaintiff Σ|Δ|</option>
+            <option value="receiverAbs">By defendant Σ|Δ|</option>
+            <option value="absDeltaSum">No sort</option>
           </select>
         </div>
       </div>
@@ -65,7 +63,7 @@ export default function DeltaMatrixView({ matrix, selectedCell, onSelectCell }) 
             minWidth: 240 + receivers.length * cellSize,
           }}
         >
-          <div className="cell head sticky-top sticky-left">{tx("原告 \\\\ 被告", "Plaintiff \\\\ Defendant")}</div>
+          <div className="cell head sticky-top sticky-left">Plaintiff \\ Defendant</div>
           {receivers.map((r) => (
             <div
               key={r}
@@ -103,10 +101,7 @@ export default function DeltaMatrixView({ matrix, selectedCell, onSelectCell }) 
                   <div
                     key={`${s}\t${r}`}
                     className="cell heat"
-                    title={tx(
-                      `${s} → ${r}\nΔ=${delta.toFixed(3)}\nA=${(row?.weightA ?? 0).toFixed(3)} B=${(row?.weightB ?? 0).toFixed(3)}`,
-                      `${s} → ${r}\nΔ=${delta.toFixed(3)}\nA=${(row?.weightA ?? 0).toFixed(3)} B=${(row?.weightB ?? 0).toFixed(3)}`,
-                    )}
+                    title={`${s} → ${r}\nΔ=${delta.toFixed(3)}\nA=${(row?.weightA ?? 0).toFixed(3)} B=${(row?.weightB ?? 0).toFixed(3)}`}
                     style={{ background: bg, color: fg, justifyContent: "center" }}
                   >
                     {delta ? delta.toFixed(2) : ""}
@@ -118,7 +113,7 @@ export default function DeltaMatrixView({ matrix, selectedCell, onSelectCell }) 
         </div>
       </div>
       <div className="viz-note" style={{ marginTop: 10 }}>
-        {tx("红=在 B 增强，蓝=在 B 减弱（相对 A）。", "Red = stronger in B; blue = weaker in B (relative to A).")}
+        Red = stronger in B; blue = weaker in B (relative to A).
       </div>
     </div>
   );

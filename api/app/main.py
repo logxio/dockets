@@ -105,8 +105,8 @@ Based on the methodology from:
         "url": "https://opensource.org/licenses/MIT",
     },
     contact={
-        "name": "Legal Intelligence Platform",
-        "url": "https://github.com/your-org/legal-intelligence-platform",
+        "name": "Legal Intelligence Workbench",
+        "url": "https://github.com/logxio/dockets",
     },
 )
 

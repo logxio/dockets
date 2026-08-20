@@ -1,23 +1,20 @@
 import React from "react";
 import CitationBadge from "./CitationBadge";
 import Tooltip from "./Tooltip";
-import { useI18n } from "../lib/i18n";
 
 export default function TableView({ events, selectedPair, onSelectPair, onOpenEvidence }) {
-  const { lang } = useI18n();
-  const tx = (zh, en) => (lang === "en" ? en : zh);
   const [q, setQ] = React.useState("");
   const query = q.trim().toLowerCase();
   const hlRef = React.useRef(null);
   const labels = {
     rowId: "RowId",
-    citation: tx("引用", "Citation"),
-    plaintiff: tx("原告律所", "PlaintiffFirm"),
-    defendant: tx("被告律所", "DefendantFirm"),
-    caseType: tx("案件类型", "CaseType"),
-    court: tx("法院", "Court"),
-    outcome: tx("结果", "Outcome"),
-    weight: tx("权重", "Weight"),
+    citation: "Citation",
+    plaintiff: "PlaintiffFirm",
+    defendant: "DefendantFirm",
+    caseType: "CaseType",
+    court: "Court",
+    outcome: "Outcome",
+    weight: "Weight",
   };
 
   const rows = React.useMemo(() => {
@@ -55,11 +52,11 @@ export default function TableView({ events, selectedPair, onSelectPair, onOpenEv
   return (
     <div className="viz-view">
       <div className="row split" style={{ marginBottom: 10 }}>
-        <div className="pill">{tx("最多显示前 2000 行", "Showing up to 2000 rows")}</div>
+        <div className="pill">Showing up to 2000 rows</div>
         <input
           className="input"
           style={{ width: "min(420px, 100%)" }}
-          placeholder={tx("搜索（原告/被告/案件类型/法院/结果）", "Search (plaintiff/defendant/case type/court/outcome)")}
+          placeholder="Search (plaintiff/defendant/case type/court/outcome)"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -85,7 +82,7 @@ export default function TableView({ events, selectedPair, onSelectPair, onOpenEv
                 key={idx}
                 ref={isHl(e) ? hlRef : null}
 	                className={`${isHl(e) ? "row-pair-hl" : ""} table-row-clickable`}
-	                title={tx("点击：高亮并绑定到 网络/矩阵/点图", "Click: highlight and bind to Network/Matrix/DotPlot")}
+	                title="Click: highlight and bind to Network/Matrix/DotPlot"
 	                onClick={() => (typeof onSelectPair === "function" ? onSelectPair({ sender: e.sender, receiver: e.receiver }) : null)}
 	              >
 	                <td data-label={labels.rowId}>{e.rowId ?? ""}</td>
@@ -94,11 +91,11 @@ export default function TableView({ events, selectedPair, onSelectPair, onOpenEv
 	                    rowIds={Number.isFinite(Number(e.rowId)) ? [Number(e.rowId)] : []}
 	                    title={
 	                      Number.isFinite(Number(e.rowId))
-                        ? tx(`RowId ${e.rowId} · 点击查看证据`, `RowId ${e.rowId} · Click to view evidence`)
-                        : tx("点击查看证据", "Click to view evidence")
+                        ? `RowId ${e.rowId} · Click to view evidence`
+                        : "Click to view evidence"
                     }
                     onOpenEvidence={(ids) =>
-                      typeof onOpenEvidence === "function" ? onOpenEvidence(ids, tx(`RowId ${ids[0]} · ${e.sender}→${e.receiver}`, `RowId ${ids[0]} · ${e.sender}→${e.receiver}`)) : null
+                      typeof onOpenEvidence === "function" ? onOpenEvidence(ids, `RowId ${ids[0]} · ${e.sender}→${e.receiver}`) : null
 	                    }
 	                  />
 	                </td>

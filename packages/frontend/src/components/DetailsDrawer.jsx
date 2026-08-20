@@ -18,7 +18,7 @@ export default function DetailsDrawer({
   onClearFocus,
   onOpenEvidence,
 }) {
-  const { tx, t } = useI18n();
+  const { t } = useI18n();
   const [tab, setTab] = React.useState("partners");
   React.useEffect(() => setTab("partners"), [selectedCell]);
 
@@ -32,7 +32,7 @@ export default function DetailsDrawer({
         <div className="drawer-head">
           <div>
             <div className="card-title">{selectedCell}</div>
-            <div className="card-sub">{tx("点击下方按钮可“一键聚焦该律所”的子网络。", "Use the buttons below to focus this firm’s subgraph.")}</div>
+            <div className="card-sub">Use the buttons below to focus this firm’s subgraph.</div>
           </div>
           <button className="btn small" onClick={onClose}>
             {t("buttons.close")}
@@ -42,37 +42,37 @@ export default function DetailsDrawer({
         <div className="drawer-body">
           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
             <button className="btn small" onClick={() => onApplyFocus(selectedCell, "any")}>
-              {tx("聚焦：任意", "Focus: Any")}
+              Focus: Any
             </button>
             <button className="btn small" onClick={() => onApplyFocus(selectedCell, "outgoing")}>
-              {tx("聚焦：发出", "Focus: Out")}
+              Focus: Out
             </button>
             <button className="btn small" onClick={() => onApplyFocus(selectedCell, "incoming")}>
-              {tx("聚焦：进入", "Focus: In")}
+              Focus: In
             </button>
             {isFocused ? (
               <button className="btn danger small" onClick={onClearFocus}>
-                {tx("清除聚焦", "Clear focus")}
+                Clear focus
               </button>
             ) : null}
-            {isFocused ? <span className="pill">{tx("当前已聚焦", "Focused")} ({focusMode ?? "any"})</span> : null}
+            {isFocused ? <span className="pill">Focused ({focusMode ?? "any"})</span> : null}
           </div>
 
           <div className="metric">
             <div>
-              <div className="k">{tx("总强度", "Total weight")}</div>
+              <div className="k">Total weight</div>
               <div className="v">{fmt(details.totalWeight)}</div>
             </div>
             <div>
-              <div className="k">{tx("总边数", "Total edges")}</div>
+              <div className="k">Total edges</div>
               <div className="v">{(details.inCount ?? 0) + (details.outCount ?? 0)}</div>
             </div>
             <div>
-              <div className="k">{tx("发出强度", "Outgoing weight")}</div>
+              <div className="k">Outgoing weight</div>
               <div className="v">{fmt(details.outWeight)}</div>
             </div>
             <div>
-              <div className="k">{tx("进入强度", "Incoming weight")}</div>
+              <div className="k">Incoming weight</div>
               <div className="v">{fmt(details.inWeight)}</div>
             </div>
           </div>
@@ -81,9 +81,9 @@ export default function DetailsDrawer({
 
           <div className="row" style={{ gap: 8 }}>
             {[
-              ["partners", tx("对手", "Opponents")],
-              ["metabolites", tx("案件类型", "Case types")],
-              ["sensors", tx("法院与结果", "Courts & outcomes")],
+              ["partners", "Opponents"],
+              ["metabolites", "Case types"],
+              ["sensors", "Courts & outcomes"],
             ].map(([k, label]) => (
               <button key={k} className={`btn small ${tab === k ? "primary" : ""}`} onClick={() => setTab(k)}>
                 {label}
@@ -96,7 +96,7 @@ export default function DetailsDrawer({
           {tab === "partners" ? (
             <>
               <div className="list">
-                <h4>{tx("主要对手（作为原告）", "Top opponents (as plaintiff)")}</h4>
+                <h4>Top opponents (as plaintiff)</h4>
                 {details.extra?.outgoingPartners?.length ? (
                   details.extra.outgoingPartners.map((p) => (
                     <div key={`out-${p.key}`} className="item">
@@ -107,7 +107,7 @@ export default function DetailsDrawer({
                           rowIds={p.rowIds ?? []}
                           onOpenEvidence={(ids) =>
                             typeof onOpenEvidence === "function"
-                              ? onOpenEvidence(ids, tx(`${selectedCell}→${p.key} · 证据`, `${selectedCell}→${p.key} · evidence`))
+                              ? onOpenEvidence(ids, `${selectedCell}→${p.key} · evidence`)
                               : null
                           }
                         />
@@ -122,7 +122,7 @@ export default function DetailsDrawer({
               </div>
 
               <div className="list">
-                <h4>{tx("主要对手（作为被告）", "Top opponents (as defendant)")}</h4>
+                <h4>Top opponents (as defendant)</h4>
                 {details.extra?.incomingPartners?.length ? (
                   details.extra.incomingPartners.map((p) => (
                     <div key={`in-${p.key}`} className="item">
@@ -133,7 +133,7 @@ export default function DetailsDrawer({
                           rowIds={p.rowIds ?? []}
                           onOpenEvidence={(ids) =>
                             typeof onOpenEvidence === "function"
-                              ? onOpenEvidence(ids, tx(`${p.key}→${selectedCell} · 证据`, `${p.key}→${selectedCell} · evidence`))
+                              ? onOpenEvidence(ids, `${p.key}→${selectedCell} · evidence`)
                               : null
                           }
                         />
@@ -149,7 +149,7 @@ export default function DetailsDrawer({
             </>
           ) : tab === "metabolites" ? (
             <div className="list">
-              <h4>{tx("主要案件类型（涉及）", "Top case types (involved)")}</h4>
+              <h4>Top case types (involved)</h4>
               {details.extra?.metabolites?.length ? (
                 details.extra.metabolites.map((p) => (
                   <div key={`m-${p.key}`} className="item">
@@ -168,7 +168,7 @@ export default function DetailsDrawer({
           ) : (
             <>
               <div className="list">
-                <h4>{tx("主要法院（涉及）", "Top courts (involved)")}</h4>
+                <h4>Top courts (involved)</h4>
                 {details.extra?.sensors?.length ? (
                   details.extra.sensors.map((p) => (
                     <div key={`s-${p.key}`} className="item">
@@ -186,7 +186,7 @@ export default function DetailsDrawer({
               </div>
 
               <div className="list">
-                <h4>{tx("结果构成", "Outcomes (composition)")}</h4>
+                <h4>Outcomes (composition)</h4>
                 {details.extra?.annotations?.length ? (
                   details.extra.annotations.map((p) => (
                     <div key={`a-${p.key}`} className="item">

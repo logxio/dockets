@@ -3,24 +3,23 @@ import { createMatter, getMatter, health, parseMatterDocumentWithProgress, pollJ
 import { X, Briefcase, AlertCircle, Upload, FileText, XCircle } from "lucide-react";
 
 const CASE_TYPES = [
-  { value: "contract", zh: "合同纠纷", en: "Contract" },
-  { value: "civil_rights", zh: "民权案件", en: "Civil Rights" },
-  { value: "labor", zh: "劳动争议", en: "Labor" },
-  { value: "torts", zh: "侵权案件", en: "Torts" },
-  { value: "other", zh: "其他", en: "Other" },
+  { value: "contract", label: "Contract" },
+  { value: "civil_rights", label: "Civil Rights" },
+  { value: "labor", label: "Labor" },
+  { value: "torts", label: "Torts" },
+  { value: "other", label: "Other" },
 ];
 
 const ROLES = [
-  { value: "defendant", zh: "被告", en: "Defendant" },
-  { value: "plaintiff", zh: "原告", en: "Plaintiff" },
+  { value: "defendant", label: "Defendant" },
+  { value: "plaintiff", label: "Plaintiff" },
 ];
 
 const JURISDICTIONS = [
-  { value: "US", zh: "美国", en: "United States" },
+  { value: "US", label: "United States" },
 ];
 
-export default function CreateMatterModal({ open, lang = "zh", onClose, onCreated }) {
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
+export default function CreateMatterModal({ open, onClose, onCreated }) {
 
   const SAMPLE_INTAKE_TEXT = React.useMemo(
     () =>
@@ -87,17 +86,17 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
   const intakeStageLabel = React.useMemo(() => {
     const s = String(intakeStage || "");
     if (!s) return "";
-    if (s === "upload") return tx("上传材料", "Uploading");
-    if (s === "processing") return tx("处理中", "Processing");
-    if (s === "extract") return tx("提取文本", "Extracting text");
-    if (s === "parse") return tx("识别关键信息", "Parsing fields");
-    if (s === "create_matter") return tx("创建案件", "Creating matter");
-    if (s === "recommend") return tx("匹配候选律所", "Shortlisting firms");
-    if (s === "evidence") return tx("拉取证据样本", "Gathering evidence");
-    if (s === "pack") return tx("生成决策包", "Generating pack");
-    if (s === "done") return tx("完成", "Done");
+    if (s === "upload") return "Uploading";
+    if (s === "processing") return "Processing";
+    if (s === "extract") return "Extracting text";
+    if (s === "parse") return "Parsing fields";
+    if (s === "create_matter") return "Creating matter";
+    if (s === "recommend") return "Shortlisting firms";
+    if (s === "evidence") return "Gathering evidence";
+    if (s === "pack") return "Generating pack";
+    if (s === "done") return "Done";
     return s;
-  }, [intakeStage, tx]);
+  }, [intakeStage]);
 
   const resetForm = React.useCallback(() => {
     setForm({
@@ -145,17 +144,14 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
           ok: false,
           message:
             err?.message ||
-            tx(
-              "后端 API 未连接（请先启动 FastAPI 后端）",
-              "Backend API not reachable (start the FastAPI server first)"
-            ),
+            "Backend API not reachable (start the FastAPI server first)",
         });
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [open, tx]);
+  }, [open]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -228,10 +224,10 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
           setImportText(text);
         }
       } catch (err) {
-        setError(err?.message || tx("读取文件失败", "Failed to read file"));
+        setError(err?.message || "Failed to read file");
       }
     },
-    [tx]
+    []
   );
 
   const handleImportFile = async (e) => {
@@ -262,17 +258,17 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
       setImportMeta(parsed?.meta && typeof parsed.meta === "object" ? parsed.meta : null);
       applyParsedBrief(parsed?.brief ?? null);
     } catch (err) {
-      setError(err?.message || tx("解析失败", "Failed to parse document"));
+      setError(err?.message || "Failed to parse document");
     } finally {
       setImportProgress(null);
       setImporting(false);
     }
-  }, [applyParsedBrief, tx]);
+  }, [applyParsedBrief]);
 
   const handleParseImport = async () => {
     const text = String(importText || "").trim();
     if (!importFile && !text) {
-      setError(tx("请先上传材料或粘贴文本", "Upload a document or paste text first"));
+      setError("Upload a document or paste text first");
       return;
     }
     return parseAndFill({ file: importFile, text: importFile ? undefined : text });
@@ -281,15 +277,12 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
   const handleOneClickIntake = async () => {
     const text = String(importText || "").trim();
     if (!importFile && !text) {
-      setError(tx("请先上传材料或粘贴文本", "Upload a document or paste text first"));
+      setError("Upload a document or paste text first");
       return;
     }
     if (apiStatus.ok === false) {
       setError(
-        tx(
-          "后端 API 未连接：请先启动 FastAPI（8000/8001 均可），再一键创建。",
-          "Backend API not reachable: start FastAPI (port 8000 or 8001), then run one-click intake."
-        )
+        "Backend API not reachable: start FastAPI (port 8000 or 8001), then run one-click intake."
       );
       return;
     }
@@ -314,7 +307,7 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
       );
       const jobId = accepted?.jobId;
       if (!jobId) {
-        throw new Error(tx("未返回任务 ID", "Missing jobId"));
+        throw new Error("Missing jobId");
       }
       setIntakeStage("processing");
       setIntakeProgress(10);
@@ -338,13 +331,13 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
 
       const matterId = job?.result?.matterId;
       if (!matterId) {
-        throw new Error(tx("流水线完成，但未返回案件 ID", "Intake finished but missing matterId"));
+        throw new Error("Intake finished but missing matterId");
       }
       const matter = await getMatter(matterId);
       onCreated?.(matter);
       onClose?.();
     } catch (err) {
-      setError(err?.message || tx("一键创建失败", "One-click intake failed"));
+      setError(err?.message || "One-click intake failed");
     } finally {
       setIntakeProgress(null);
       setIntakeStage(null);
@@ -355,15 +348,12 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) {
-      setError(tx("请输入案件名称", "Please enter a matter name"));
+      setError("Please enter a matter name");
       return;
     }
     if (apiStatus.ok === false) {
       setError(
-        tx(
-          "后端 API 未连接：请先启动 FastAPI（见下方提示），再创建案件。",
-          "Backend API not reachable: start FastAPI first (see below), then create the matter."
-        )
+        "Backend API not reachable: start FastAPI first (see below), then create the matter."
       );
       return;
     }
@@ -392,7 +382,7 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
       onCreated?.(matter);
       onClose?.();
     } catch (err) {
-      setError(err.message || tx("创建失败", "Failed to create matter"));
+      setError(err.message || "Failed to create matter");
     } finally {
       setSubmitting(false);
     }
@@ -407,13 +397,13 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
           <div className="modal-header-title">
             <Briefcase size={20} />
             <div>
-              <h2>{tx("新建案件", "New Matter")}</h2>
+              <h2>New Matter</h2>
               <div className="modal-subtitle">
-                {tx("自动识别材料 → 一键生成决策包", "Auto-extract → One-click Decision Pack")}
+                Auto-extract → One-click Decision Pack
               </div>
             </div>
           </div>
-          <button className="modal-close" onClick={onClose} disabled={intaking || submitting} title={tx("关闭", "Close")}>
+          <button className="modal-close" onClick={onClose} disabled={intaking || submitting} title="Close">
             <X size={20} />
           </button>
         </div>
@@ -431,26 +421,20 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
               <div className="form-error" style={{ opacity: 0.95 }}>
                 <AlertCircle size={16} />
                 <span>
-                  {tx(
-                    "后端未连接：请启动 FastAPI（8000/8001 均可），并确认 `http://127.0.0.1:8001/api/health` 或 `http://127.0.0.1:8000/api/health` 可打开。",
-                    "Backend not reachable: start FastAPI (port 8000 or 8001), then verify `http://127.0.0.1:8001/api/health` or `http://127.0.0.1:8000/api/health`."
-                  )}
+                  Backend not reachable: start FastAPI (port 8000 or 8001), then verify `http://127.0.0.1:8001/api/health` or `http://127.0.0.1:8000/api/health`.
                 </span>
               </div>
             ) : null}
 
             <div className="form-section">
-              <h3 className="form-section-title">{tx("自动识别材料（可选）", "Auto-extract from documents (optional)")}</h3>
+              <h3 className="form-section-title">Auto-extract from documents (optional)</h3>
 
               <div className="form-hint" style={{ marginTop: -6, marginBottom: 12 }}>
-                {tx(
-                  "上传材料后，我们会自动识别法院、案由、当事人等信息并填充表单（你只需确认）。",
-                  "Upload a document and we’ll auto-extract court/case type/parties and prefill the form (you just confirm)."
-                )}
+                Upload a document and we’ll auto-extract court/case type/parties and prefill the form (you just confirm).
               </div>
 
               <div className="form-group">
-                <label className="form-label">{tx("上传 PDF（支持扫描件）", "Upload PDF (scanned PDFs supported)")}</label>
+                <label className="form-label">Upload PDF (scanned PDFs supported)</label>
 
                 <input
                   ref={fileInputRef}
@@ -486,13 +470,10 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div className="doc-dropzone-title">
-                        {tx(
-                          "拖拽 PDF 到这里（支持扫描件），或点击选择文件",
-                          "Drag & drop a PDF here (scanned PDFs supported), or click to choose"
-                        )}
+                        {"Drag & drop a PDF here (scanned PDFs supported), or click to choose"}
                       </div>
                       <div className="doc-dropzone-sub">
-                        {tx("我们会自动识别并填充表单（也支持 .md/.txt）", "We’ll auto-extract and prefill (also supports .md/.txt)")}
+                        We’ll auto-extract and prefill (also supports .md/.txt)
                       </div>
                     </div>
                   </div>
@@ -514,7 +495,7 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                           setImportProgress(null);
                           if (fileInputRef.current) fileInputRef.current.value = "";
                         }}
-                        title={tx("移除文件", "Remove file")}
+                        title="Remove file"
                         disabled={importing || submitting}
                       >
                         <XCircle size={16} />
@@ -532,17 +513,17 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                       />
                     </div>
                     <div className="form-hint" style={{ marginTop: 6 }}>
-                      {tx("正在解析并填充…", "Parsing and prefilling…")}
+                      Parsing and prefilling…
                     </div>
                   </div>
                 ) : null}
               </div>
 
               <div className="form-group">
-                <label className="form-label">{tx("或直接粘贴文本（可选）", "Or paste text (optional)")}</label>
+                <label className="form-label">Or paste text (optional)</label>
                 <textarea
                   className="form-textarea"
-                  placeholder={tx("粘贴诉状/邮件/材料的文本（或 OCR 后的文本）…", "Paste complaint/email text (or OCR text)...")}
+                  placeholder="Paste complaint/email text (or OCR text)..."
                   value={importText}
                   onChange={(e) => setImportText(e.target.value)}
                   rows={6}
@@ -555,12 +536,12 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                   className="btn primary"
                   onClick={handleOneClickIntake}
                   disabled={intaking || importing || submitting}
-                  title={tx("自动识别材料 → 创建案件 → 推荐候选 → 生成决策包", "Auto-extract → create matter → recommend → generate pack")}
+                  title="Auto-extract → create matter → recommend → generate pack"
                 >
-                  {intaking ? tx("流水线运行中...", "Running pipeline...") : tx("一键创建（推荐）", "One-click (recommended)")}
+                  {intaking ? "Running pipeline..." : "One-click (recommended)"}
                 </button>
                 <button type="button" className="btn" onClick={handleParseImport} disabled={intaking || importing || submitting}>
-                  {importing ? tx("解析中...", "Parsing...") : tx("仅解析并填充", "Parse & Fill")}
+                  {importing ? "Parsing..." : "Parse & Fill"}
                 </button>
                 <button
                   type="button"
@@ -576,7 +557,7 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                   }}
                   disabled={intaking || importing || submitting}
                 >
-                  {tx("清空导入文本", "Clear")}
+                  Clear
                 </button>
                 <button
                   type="button"
@@ -601,7 +582,7 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                   }}
                   disabled={intaking || importing || submitting}
                 >
-                  {tx("示例：一键识别", "Sample: Auto-fill")}
+                  Sample: Auto-fill
                 </button>
               </div>
 
@@ -614,7 +595,7 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                     />
                   </div>
                   <div className="form-hint" style={{ marginTop: 6 }}>
-                    {tx("流水线：识别材料 → 匹配候选 → 生成决策包", "Pipeline: extract → shortlist → decision pack")}
+                    Pipeline: extract → shortlist → decision pack
                     {intakeStageLabel ? ` · ${intakeStageLabel}` : ""}
                   </div>
                 </div>
@@ -624,7 +605,7 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                 <div className="parse-notice" style={{ marginTop: 10 }}>
                   <div className="parse-notice-title">
                     <AlertCircle size={14} />
-                    <span>{tx("识别提示", "Extraction notes")}</span>
+                    <span>Extraction notes</span>
                   </div>
                   <div className="parse-notice-body">{importWarnings.join(" / ")}</div>
                 </div>
@@ -632,7 +613,7 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
 
               {Array.isArray(importPreview) && importPreview.length ? (
                 <div className="form-hint" style={{ marginTop: 8 }}>
-                  {tx("已识别：", "Extracted: ")}
+                  {"Extracted: "}
                   {importPreview
                     .slice(0, 6)
                     .map((f) => {
@@ -640,14 +621,14 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                       const v = String(f?.value ?? "");
                       const label =
                         k === "caption"
-                          ? tx("标题", "Caption")
+                          ? "Caption"
                           : k === "court"
-                          ? tx("法院", "Court")
+                          ? "Court"
                           : k === "amountHint"
-                          ? tx("金额线索", "Amount hint")
+                          ? "Amount hint"
                           : k === "caseType"
-                          ? tx("案由", "Case type")
-                          : k || tx("字段", "Field");
+                          ? "Case type"
+                          : k || "Field";
                       return `${label}: ${v}`;
                     })
                     .join(" · ")}
@@ -658,8 +639,8 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
                 <details className="parse-preview-details">
                   <summary className="parse-preview-summary">
                     <FileText size={14} />
-                    <span>{tx("查看提取文本（预览）", "View extracted text (preview)")}</span>
-                    {importMeta?.ocrUsed ? <span className="parse-preview-badge">{tx("已自动 OCR", "OCR")}</span> : null}
+                    <span>View extracted text (preview)</span>
+                    {importMeta?.ocrUsed ? <span className="parse-preview-badge">OCR</span> : null}
                   </summary>
                   <pre className="parse-preview">{importTextPreview}</pre>
                 </details>
@@ -667,14 +648,14 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
             </div>
 
             <div className="form-section">
-              <h3 className="form-section-title">{tx("基本信息", "Basic Information")}</h3>
+              <h3 className="form-section-title">Basic Information</h3>
 
               <div className="form-group">
-                <label className="form-label required">{tx("案件名称", "Matter Name")}</label>
+                <label className="form-label required">Matter Name</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder={tx("例如：Acme v. Beta — 合同纠纷 (NDCA)", "e.g., Acme v. Beta — Contract (NDCA)")}
+                  placeholder="e.g., Acme v. Beta — Contract (NDCA)"
                   value={form.name}
                   onChange={handleChange("name")}
                   autoFocus
@@ -683,22 +664,22 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">{tx("司法管辖区", "Jurisdiction")}</label>
+                  <label className="form-label">Jurisdiction</label>
                   <select className="form-select" value={form.jurisdiction} onChange={handleChange("jurisdiction")}>
                     {JURISDICTIONS.map((j) => (
                       <option key={j.value} value={j.value}>
-                        {lang === "en" ? j.en : j.zh}
+                        {j.label}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">{tx("法院", "Court")}</label>
+                  <label className="form-label">Court</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder={tx("例如：N.D. Cal.", "e.g., N.D. Cal.")}
+                    placeholder="e.g., N.D. Cal."
                     value={form.court}
                     onChange={handleChange("court")}
                   />
@@ -707,22 +688,22 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">{tx("案由", "Case Type")}</label>
+                  <label className="form-label">Case Type</label>
                   <select className="form-select" value={form.caseType} onChange={handleChange("caseType")}>
                     {CASE_TYPES.map((ct) => (
                       <option key={ct.value} value={ct.value}>
-                        {lang === "en" ? ct.en : ct.zh}
+                        {ct.label}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">{tx("己方角色", "Your Role")}</label>
+                  <label className="form-label">Your Role</label>
                   <select className="form-select" value={form.role} onChange={handleChange("role")}>
                     {ROLES.map((r) => (
                       <option key={r.value} value={r.value}>
-                        {lang === "en" ? r.en : r.zh}
+                        {r.label}
                       </option>
                     ))}
                   </select>
@@ -731,26 +712,26 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
             </div>
 
             <div className="form-section">
-              <h3 className="form-section-title">{tx("对方信息", "Opponent Information")}</h3>
+              <h3 className="form-section-title">Opponent Information</h3>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">{tx("对方名称", "Opponent Name")}</label>
+                  <label className="form-label">Opponent Name</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder={tx("例如：Beta Inc.", "e.g., Beta Inc.")}
+                    placeholder="e.g., Beta Inc."
                     value={form.opponentName}
                     onChange={handleChange("opponentName")}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">{tx("对方律所", "Opponent Counsel")}</label>
+                  <label className="form-label">Opponent Counsel</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder={tx("例如：Skadden Arps", "e.g., Skadden Arps")}
+                    placeholder="e.g., Skadden Arps"
                     value={form.opponentCounsel}
                     onChange={handleChange("opponentCounsel")}
                   />
@@ -759,14 +740,14 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
             </div>
 
             <div className="form-section">
-              <h3 className="form-section-title">{tx("预算与备注", "Budget & Notes")}</h3>
+              <h3 className="form-section-title">{"Budget & Notes"}</h3>
 
               <div className="form-group">
-                <label className="form-label">{tx("预算（美元）", "Budget (USD)")}</label>
+                <label className="form-label">Budget (USD)</label>
                 <input
                   type="number"
                   className="form-input"
-                  placeholder={tx("例如：500000", "e.g., 500000")}
+                  placeholder="e.g., 500000"
                   value={form.budgetUsd}
                   onChange={handleChange("budgetUsd")}
                   min="0"
@@ -775,10 +756,10 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
               </div>
 
               <div className="form-group">
-                <label className="form-label">{tx("备注", "Notes")}</label>
+                <label className="form-label">Notes</label>
                 <textarea
                   className="form-textarea"
-                  placeholder={tx("其他需要说明的信息...", "Any additional information...")}
+                  placeholder="Any additional information..."
                   value={form.notes}
                   onChange={handleChange("notes")}
                   rows={3}
@@ -789,10 +770,10 @@ export default function CreateMatterModal({ open, lang = "zh", onClose, onCreate
 
           <div className="modal-footer">
             <button type="button" className="btn" onClick={onClose} disabled={submitting}>
-              {tx("取消", "Cancel")}
+              Cancel
             </button>
             <button type="submit" className="btn primary" disabled={submitting}>
-              {submitting ? tx("创建中...", "Creating...") : tx("创建案件", "Create Matter")}
+              {submitting ? "Creating..." : "Create Matter"}
             </button>
           </div>
         </form>

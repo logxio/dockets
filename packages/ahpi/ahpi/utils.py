@@ -85,9 +85,10 @@ class ConvergenceChecker:
         """
         self.loop_number += 1
 
-        # Check maximum iterations
+        # Check maximum iterations. Report the number of iterations that actually
+        # ran, not the call that tripped the cap.
         if self.loop_number > self.maximum_iterations:
-            return 0, self.loop_number
+            return 0, self.maximum_iterations
 
         # Store history
         self.old_lambdas.append(np.copy(current_lambda))

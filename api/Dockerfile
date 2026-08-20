@@ -1,3 +1,5 @@
+# Build context is the repository root: the API imports the two local
+# workspace packages, so they have to be installed from source alongside it.
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -5,17 +7,14 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-RUN pip install --no-cache-dir --upgrade pip
+COPY packages/ahpi /app/packages/ahpi
+COPY packages/pipeline /app/packages/pipeline
+COPY api /app/api
 
-COPY . /app
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir ./packages/ahpi ./packages/pipeline ./api
 
-RUN if [ -f requirements.txt ]; then \
-      pip install --no-cache-dir -r requirements.txt; \
-    elif [ -f pyproject.toml ]; then \
-      pip install --no-cache-dir .; \
-    else \
-      pip install --no-cache-dir "fastapi>=0.110" "uvicorn[standard]>=0.27"; \
-    fi
+WORKDIR /app/api
 
 EXPOSE 8000
 

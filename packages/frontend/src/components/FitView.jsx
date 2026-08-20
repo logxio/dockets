@@ -1,6 +1,5 @@
 import React from "react";
 import { useDropzone } from "react-dropzone";
-import { useI18n } from "../lib/i18n";
 import SmartLoader from "./SmartLoader";
 import { fitCsv } from "../lib/apiClient";
 
@@ -18,7 +17,6 @@ function fmtBytes(n) {
 }
 
 export default function FitView() {
-  const { tx } = useI18n();
   const [file, setFile] = React.useState(null);
   const [busy, setBusy] = React.useState(false);
   const [phase, setPhase] = React.useState("idle"); // idle | uploading | fitting | done | error
@@ -83,31 +81,31 @@ export default function FitView() {
 
   const statusLabel =
     phase === "uploading"
-      ? tx("上传中…", "Uploading…")
+      ? "Uploading…"
       : phase === "fitting"
-        ? tx("后端拟合中…", "Fitting on backend…")
+        ? "Fitting on backend…"
         : phase === "done"
-          ? tx("完成", "Done")
+          ? "Done"
           : phase === "error"
-            ? tx("失败", "Failed")
-            : tx("就绪", "Ready");
+            ? "Failed"
+            : "Ready";
 
   const percent = typeof progress.percent === "number" ? Math.max(0, Math.min(100, progress.percent)) : undefined;
 
   return (
     <div className="viz-scroll">
       <div className="notice" style={{ marginBottom: 10 }}>
-        <div style={{ fontWeight: 800 }}>{tx("实时拟合（/api/fit）", "Real-time fit (/api/fit)")}</div>
+        <div style={{ fontWeight: 800 }}>Real-time fit (/api/fit)</div>
         <div className="muted" style={{ marginTop: 4 }}>
-          {tx("上传 CSV → 后端拟合 → 返回结果（JSON）", "Upload CSV → fit on backend → render JSON result")}
+          Upload CSV → fit on backend → render JSON result
         </div>
       </div>
 
       <div className="card pad">
         <div className="row split" style={{ gap: 10 }}>
           <div>
-            <div className="card-title">{tx("1) 选择 CSV", "1) Select CSV")}</div>
-            <div className="card-sub">{tx("拖拽文件或点击选择。", "Drag & drop or click to select.")}</div>
+            <div className="card-title">1) Select CSV</div>
+            <div className="card-sub">{"Drag & drop or click to select."}</div>
           </div>
           <div className="pill">{statusLabel}</div>
         </div>
@@ -116,7 +114,7 @@ export default function FitView() {
 
         <div {...getRootProps()} className={`btn dropzone ${isDragActive ? "active" : ""}`} style={{ width: "100%", justifyContent: "center" }}>
           <input {...getInputProps()} />
-          {isDragActive ? tx("松开导入…", "Drop to select…") : tx("拖拽 CSV / 点击选择", "Drop CSV / click to select")}
+          {isDragActive ? "Drop to select…" : "Drop CSV / click to select"}
         </div>
 
         <div className="row split" style={{ marginTop: 10, gap: 10 }}>
@@ -128,18 +126,18 @@ export default function FitView() {
                 <span>{fmtBytes(file.size)}</span>
               </>
             ) : (
-              tx("未选择文件", "No file selected")
+              "No file selected"
             )}
           </div>
           <div className="row" style={{ gap: 8 }}>
             <button className={`btn ${canStart ? "primary" : ""}`} disabled={!canStart} onClick={onStart}>
-              {tx("开始拟合", "Fit")}
+              Fit
             </button>
             <button className="btn" disabled={!busy} onClick={onCancel}>
-              {tx("取消", "Cancel")}
+              Cancel
             </button>
             <button className="btn" disabled={busy && phase !== "done" && phase !== "error"} onClick={reset}>
-              {tx("重置", "Reset")}
+              Reset
             </button>
           </div>
         </div>
@@ -152,17 +150,17 @@ export default function FitView() {
             <div className="row split" style={{ gap: 10 }}>
               <div className="muted" style={{ fontSize: 12 }}>
                 {typeof percent === "number"
-                  ? tx(`上传进度：${percent}%`, `Upload: ${percent}%`)
-                  : tx(`已上传：${fmtBytes(progress.loaded)}`, `Uploaded: ${fmtBytes(progress.loaded)}`)}
+                  ? `Upload: ${percent}%`
+                  : `Uploaded: ${fmtBytes(progress.loaded)}`}
               </div>
-              {phase === "fitting" ? <SmartLoader messages={[tx("拟合中…", "Fitting…"), tx("计算中…", "Computing…")]} /> : null}
+              {phase === "fitting" ? <SmartLoader messages={["Fitting…", "Computing…"]} /> : null}
             </div>
           </div>
         ) : null}
 
         {error ? (
           <div className="warning" style={{ marginTop: 12 }}>
-            <div style={{ fontWeight: 800 }}>{tx("错误", "Error")}</div>
+            <div style={{ fontWeight: 800 }}>Error</div>
             <div style={{ marginTop: 6, whiteSpace: "pre-wrap" }}>{error}</div>
           </div>
         ) : null}
@@ -170,8 +168,8 @@ export default function FitView() {
         {result ? (
           <div style={{ marginTop: 12 }}>
             <div className="row split" style={{ marginBottom: 8 }}>
-              <div className="card-title">{tx("2) 拟合结果", "2) Fit result")}</div>
-              <span className="pill success">{tx("已返回", "Returned")}</span>
+              <div className="card-title">2) Fit result</div>
+              <span className="pill success">Returned</span>
             </div>
             <pre className="reasoning-pre">{JSON.stringify(result, null, 2)}</pre>
           </div>

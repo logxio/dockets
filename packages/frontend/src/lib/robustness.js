@@ -79,8 +79,7 @@ function stabilityForBaseline(baselineKeys, variantTopKeys) {
   });
 }
 
-export function computeRobustness({ eventsAll, baseFilters, topK = 10, lang }) {
-  const isEn = String(lang) === "en";
+export function computeRobustness({ eventsAll, baseFilters, topK = 10 }) {
   const variants = variantGrid(baseFilters ?? {});
   const variantResults = [];
 
@@ -120,16 +119,12 @@ export function computeRobustness({ eventsAll, baseFilters, topK = 10, lang }) {
   const weakPairs = pairStability.filter((x) => x.support < 0.5).length;
   if (weakPairs >= Math.ceil(topK / 2))
     warnings.push(
-      isEn
-        ? "Top pairs are sensitive to filter settings: ≥ half of baseline top edges are unstable across variants."
-        : "Top pairs 对过滤参数较敏感：≥一半的 baseline Top 边在多数 variant 中不稳定。",
+      "Top pairs are sensitive to filter settings: ≥ half of baseline top edges are unstable across variants.",
     );
   const weakMets = metStability.filter((x) => x.support < 0.5).length;
   if (weakMets >= Math.ceil(topK / 2))
     warnings.push(
-      isEn
-        ? "Top case types are sensitive to filter settings: ≥ half of baseline top categories are unstable across variants."
-        : "Top case types 对过滤参数较敏感：≥一半的 baseline Top 类别在多数 variant 中不稳定。",
+      "Top case types are sensitive to filter settings: ≥ half of baseline top categories are unstable across variants.",
     );
 
   return {
@@ -174,8 +169,7 @@ function topEdgeShare(events) {
   return top / denom;
 }
 
-export function computeNullControl({ eventsAll, baseFilters, n = 60, seed = 42, lang }) {
-  const isEn = String(lang) === "en";
+export function computeNullControl({ eventsAll, baseFilters, n = 60, seed = 42 }) {
   const base = filterEvents(eventsAll ?? [], baseFilters ?? {});
   const observed = topEdgeShare(base);
 
@@ -205,8 +199,6 @@ export function computeNullControl({ eventsAll, baseFilters, n = 60, seed = 42, 
     sd,
     n,
     pValue: p,
-    note: isEn
-      ? "Null: shuffle receivers across events (preserve sender distribution + weights). Metric: max edge weight share of total."
-      : "Null：对 receiver 做随机置换（保持 sender 分布与权重）。指标：最大边权重占总权重的比例。",
+    note: "Null: shuffle receivers across events (preserve sender distribution + weights). Metric: max edge weight share of total.",
   };
 }

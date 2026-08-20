@@ -1,7 +1,6 @@
 import React from "react";
 import Tooltip from "./Tooltip";
 import CitationBadge from "./CitationBadge";
-import { useI18n } from "../lib/i18n";
 
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
@@ -69,10 +68,8 @@ function heatColor(t, isDark) {
 }
 
 export default function MatrixView({ matrix, selectedCell, onSelectCell, selectedPair, onSelectPair, onOpenEvidence }) {
-  const { lang } = useI18n();
   const theme = useTheme();
   const isDark = theme === "dark";
-  const tx = (zh, en) => (lang === "en" ? en : zh);
   const [sortBy, setSortBy] = React.useState("senderSum");
   const scrollRef = React.useRef(null);
   const [box, setBox] = React.useState({ w: 0, h: 0 });
@@ -245,7 +242,7 @@ export default function MatrixView({ matrix, selectedCell, onSelectCell, selecte
       <div className="row split" style={{ marginBottom: 10 }}>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
           <div className="pill">
-            {tx("热力图：权重", "Heatmap: weight")} (Weight)
+            Heatmap: weight (Weight)
           </div>
           {selectedPairEvidence ? (
             <CitationBadge
@@ -255,7 +252,7 @@ export default function MatrixView({ matrix, selectedCell, onSelectCell, selecte
                   ? onOpenEvidence(ids, `Cell ${selectedPair.sender}→${selectedPair.receiver} · evidence`)
                   : null
               }
-              title={tx("✅ 引用已验证", "✅ Citation verified") + ` · ${selectedPair.sender}→${selectedPair.receiver}`}
+              title={"✅ Citation verified" + ` · ${selectedPair.sender}→${selectedPair.receiver}`}
             />
           ) : null}
         </div>
@@ -265,47 +262,47 @@ export default function MatrixView({ matrix, selectedCell, onSelectCell, selecte
             style={{ width: 160 }}
             value={density}
             onChange={(e) => setDensityAndPersist(e.target.value)}
-            title={tx("显示密度：控制 cell 的最小尺寸与行高", "Density: controls cell min size and row height")}
+            title="Density: controls cell min size and row height"
           >
-            <option value="fit">{tx("密度：自适应", "Density: Fit")}</option>
-            <option value="normal">{tx("密度：标准", "Density: Normal")}</option>
-            <option value="compact">{tx("密度：紧凑", "Density: Compact")}</option>
+            <option value="fit">Density: Fit</option>
+            <option value="normal">Density: Normal</option>
+            <option value="compact">Density: Compact</option>
           </select>
 
           <button
             className="btn small"
             type="button"
             onClick={() => zoomBy(-0.12)}
-            title={tx("缩小（也支持 Ctrl/⌘ + 滚轮）", "Zoom out (Ctrl/⌘ + wheel also works)")}
+            title="Zoom out (Ctrl/⌘ + wheel also works)"
           >
             −
           </button>
-          <span className="pill" title={tx("缩放比例", "Zoom")}>
+          <span className="pill" title="Zoom">
             {Math.round(z * 100)}%
           </span>
           <button
             className="btn small"
             type="button"
             onClick={() => zoomBy(0.12)}
-            title={tx("放大（也支持 Ctrl/⌘ + 滚轮）", "Zoom in (Ctrl/⌘ + wheel also works)")}
+            title="Zoom in (Ctrl/⌘ + wheel also works)"
           >
             +
           </button>
-          <button className="btn small" type="button" onClick={resetView} title={tx("复位缩放与视野", "Reset zoom and viewport")}>
-            {tx("复位", "Reset")}
+          <button className="btn small" type="button" onClick={resetView} title="Reset zoom and viewport">
+            Reset
           </button>
 
-          <span className="pill" title={tx("按住空格键，用鼠标拖拽平移视野", "Hold Space then drag to pan")}>
-            {spaceDown ? tx("平移：开启", "Pan: ON") : tx("平移：按住空格", "Pan: hold Space")}
+          <span className="pill" title="Hold Space then drag to pan">
+            {spaceDown ? "Pan: ON" : "Pan: hold Space"}
           </span>
 
           <span className="muted" style={{ fontSize: 12 }}>
-            {tx("排序", "Sort")}
+            Sort
           </span>
           <select className="select" style={{ width: 180 }} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="senderSum">{tx("按原告总强度", "By plaintiff total")}</option>
-            <option value="receiverSum">{tx("按被告总强度", "By defendant total")}</option>
-            <option value="none">{tx("不排序", "No sort")}</option>
+            <option value="senderSum">By plaintiff total</option>
+            <option value="receiverSum">By defendant total</option>
+            <option value="none">No sort</option>
           </select>
         </div>
       </div>
@@ -330,7 +327,7 @@ export default function MatrixView({ matrix, selectedCell, onSelectCell, selecte
             gridTemplateColumns: `${labelW}px repeat(${receivers.length}, minmax(${cellMin}px, 1fr))`,
           }}
         >
-          <div className="cell head sticky-top sticky-left">{tx("原告 \\\\ 被告", "Plaintiff \\\\ Defendant")}</div>
+          <div className="cell head sticky-top sticky-left">Plaintiff \\ Defendant</div>
           {receivers.map((r) => (
             <div
               key={r}

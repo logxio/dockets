@@ -1,6 +1,5 @@
 import React from "react";
 import { downloadTsv } from "../lib/report";
-import { useI18n } from "../lib/i18n";
 
 function useTheme() {
   const [theme, setTheme] = React.useState(() => {
@@ -23,7 +22,6 @@ function fmt(n, d = 2) {
 }
 
 export default function DeltaTableView({ rows }) {
-  const { tx } = useI18n();
   const theme = useTheme();
   const isDark = theme === "dark";
   const [q, setQ] = React.useState("");
@@ -52,21 +50,21 @@ export default function DeltaTableView({ rows }) {
           <input
             className="input"
             style={{ width: 260 }}
-            placeholder={tx("搜索 原告/被告", "Search plaintiff/defendant")}
+            placeholder="Search plaintiff/defendant"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
           <select className="select" style={{ width: 160 }} value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="all">{tx("全部", "All")}</option>
-            <option value="gained">{tx("增强", "Gained")}</option>
-            <option value="lost">{tx("减弱", "Lost")}</option>
-            <option value="shared">{tx("共有", "Shared")}</option>
+            <option value="all">All</option>
+            <option value="gained">Gained</option>
+            <option value="lost">Lost</option>
+            <option value="shared">Shared</option>
           </select>
           <select className="select" style={{ width: 160 }} value={String(top)} onChange={(e) => setTop(Number(e.target.value))}>
-            <option value="50">{tx("前 50", "Top 50")}</option>
-            <option value="100">{tx("前 100", "Top 100")}</option>
-            <option value="200">{tx("前 200", "Top 200")}</option>
-            <option value="500">{tx("前 500", "Top 500")}</option>
+            <option value="50">Top 50</option>
+            <option value="100">Top 100</option>
+            <option value="200">Top 200</option>
+            <option value="500">Top 500</option>
           </select>
         </div>
         <button
@@ -89,7 +87,7 @@ export default function DeltaTableView({ rows }) {
             )
           }
         >
-          {tx("导出差异 TSV", "Export delta TSV")}
+          Export delta TSV
         </button>
       </div>
 
@@ -97,7 +95,7 @@ export default function DeltaTableView({ rows }) {
         <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 920 }}>
           <thead>
             <tr style={{ background: headerBg }}>
-              {(langHeaders(tx) ?? []).map((h) => (
+              {(langHeaders() ?? []).map((h) => (
                 <th
                   key={h}
                   style={{
@@ -143,20 +141,20 @@ export default function DeltaTableView({ rows }) {
         </table>
       </div>
       <div className="viz-note" style={{ marginTop: 10 }}>
-        {tx("默认按 |Δ| 排序（边数上限由左侧过滤控制）。", "Sorted by |Δ| by default (Top edges is controlled by the left filter).")}
+        Sorted by |Δ| by default (Top edges is controlled by the left filter).
       </div>
     </div>
   );
 }
 
-function langHeaders(tx) {
+function langHeaders() {
   return [
-    tx("原告", "Plaintiff"),
-    tx("被告", "Defendant"),
+    "Plaintiff",
+    "Defendant",
     "A",
     "B",
     "Δ(B-A)",
     "log2FC",
-    tx("状态", "Status"),
+    "Status",
   ];
 }

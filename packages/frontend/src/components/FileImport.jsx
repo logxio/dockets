@@ -72,8 +72,6 @@ function applyMahariPreset(headers, mapping) {
 
 export default function FileImport({ onLoaded, onError }) {
   const { t } = useI18n();
-  const isEn = t("langName") === "English";
-  const tx = React.useCallback((zh, en) => (isEn ? en : zh), [isEn]);
   const [fileName, setFileName] = React.useState("");
   const [rows, setRows] = React.useState(null);
   const [headers, setHeaders] = React.useState([]);
@@ -174,7 +172,7 @@ export default function FileImport({ onLoaded, onError }) {
 
       {rows?.length ? (
         <details className="details-block" style={{ marginTop: 10 }}>
-          <summary className="details-summary">{isEn ? "Preview / mapping quality" : "预览 / 映射质量"}</summary>
+          <summary className="details-summary">Preview / mapping quality</summary>
           <div style={{ height: 10 }} />
           <div className="muted" style={{ fontSize: 12 }}>
             {mappingHint}
@@ -204,9 +202,7 @@ export default function FileImport({ onLoaded, onError }) {
                 </table>
               </div>
               <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-                {isEn
-                  ? `Showing first ${previewRows.length} rows · ${previewHeaders.length} columns`
-                  : `展示前 ${previewRows.length} 行 · ${previewHeaders.length} 列`}
+                {`Showing first ${previewRows.length} rows · ${previewHeaders.length} columns`}
               </div>
             </div>
           ) : null}
@@ -220,7 +216,7 @@ export default function FileImport({ onLoaded, onError }) {
           options={headers}
           value={mapping.sender}
           onChange={(v) => setMapping((m) => ({ ...m, sender: v }))}
-          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : tx("（请先加载/上传数据）", "(load a file first)")}
+          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : "(load a file first)"}
           disabled={!headers.length}
         />
         <SelectRow
@@ -229,7 +225,7 @@ export default function FileImport({ onLoaded, onError }) {
           options={headers}
           value={mapping.receiver}
           onChange={(v) => setMapping((m) => ({ ...m, receiver: v }))}
-          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : tx("（请先加载/上传数据）", "(load a file first)")}
+          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : "(load a file first)"}
           disabled={!headers.length}
         />
         <SelectRow
@@ -237,7 +233,7 @@ export default function FileImport({ onLoaded, onError }) {
           options={headers}
           value={mapping.metabolite}
           onChange={(v) => setMapping((m) => ({ ...m, metabolite: v || undefined }))}
-          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : tx("（请先加载/上传数据）", "(load a file first)")}
+          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : "(load a file first)"}
           disabled={!headers.length}
         />
         <SelectRow
@@ -245,7 +241,7 @@ export default function FileImport({ onLoaded, onError }) {
           options={headers}
           value={mapping.sensor}
           onChange={(v) => setMapping((m) => ({ ...m, sensor: v || undefined }))}
-          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : tx("（请先加载/上传数据）", "(load a file first)")}
+          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : "(load a file first)"}
           disabled={!headers.length}
         />
         <SelectRow
@@ -253,7 +249,7 @@ export default function FileImport({ onLoaded, onError }) {
           options={headers}
           value={mapping.score}
           onChange={(v) => setMapping((m) => ({ ...m, score: v || undefined }))}
-          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : tx("（请先加载/上传数据）", "(load a file first)")}
+          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : "(load a file first)"}
           disabled={!headers.length}
         />
         <SelectRow
@@ -261,7 +257,7 @@ export default function FileImport({ onLoaded, onError }) {
           options={headers}
           value={mapping.annotation}
           onChange={(v) => setMapping((m) => ({ ...m, annotation: v || undefined }))}
-          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : tx("（请先加载/上传数据）", "(load a file first)")}
+          unselectedLabel={headers.length ? t("fileImport.mapping.unselected") : "(load a file first)"}
           disabled={!headers.length}
         />
       </div>

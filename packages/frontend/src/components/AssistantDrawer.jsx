@@ -8,7 +8,6 @@ import { splitThink } from "../lib/llmThink";
 import { parseStructuredLlmAnswer } from "../lib/llmStructured";
 import { buildMcccDataInterpretationPrompt } from "../lib/llmPrompts";
 import { getLlmApiUrl } from "../lib/llmEnv";
-import { useI18n } from "../lib/i18n";
 
 function fmt(x) {
   if (typeof x !== "number" || !Number.isFinite(x)) return "—";
@@ -27,8 +26,7 @@ function pickOutcomeKind(outcome) {
   return "other";
 }
 
-function computeTopInsights({ events, selectionSummary, lang }) {
-  const tx = (zh, en) => (String(lang) === "en" ? en : zh);
+function computeTopInsights({ events, selectionSummary }) {
   const out = [];
   const links = selectionSummary?.links ?? [];
 
@@ -37,7 +35,7 @@ function computeTopInsights({ events, selectionSummary, lang }) {
     out.push({
       id: `rivalry:${l.source}→${l.target}`,
       kind: "rivalry",
-      title: tx("头部对手关系", "Top rivalry"),
+      title: "Top rivalry",
       subtitle: `${l.source} → ${l.target} · w=${fmt(l.weight)} · n=${l.count}`,
       pair: { sender: l.source, receiver: l.target },
       rowIds: l.rowIds ?? [],
@@ -65,8 +63,8 @@ function computeTopInsights({ events, selectionSummary, lang }) {
     out.push({
       id: "def-adv:overall",
       kind: "defendant_advantage",
-      title: tx("被告优势", "Defendant advantage"),
-      subtitle: tx(`被告胜诉率 ≈ ${(rate * 100).toFixed(1)}%（n=${denom}）`, `DefendantWin rate ≈ ${(rate * 100).toFixed(1)}% (n=${denom})`),
+      title: "Defendant advantage",
+      subtitle: `DefendantWin rate ≈ ${(rate * 100).toFixed(1)}% (n=${denom})`,
       rowIds: (rate >= 0.5 ? defEvidence : plaEvidence).filter((x) => Number.isFinite(Number(x))),
     });
   }
@@ -99,11 +97,8 @@ function computeTopInsights({ events, selectionSummary, lang }) {
       out.push({
         id: `case-type:${r.caseType}`,
         kind: "case_type",
-        title: tx("案件类型异质性", "Case type heterogeneity"),
-        subtitle: tx(
-          `${r.caseType} · 被告胜 ${(r.rate * 100).toFixed(1)}%（n=${r.n}，Δ ${(r.delta * 100).toFixed(1)}pp）`,
-          `${r.caseType} · DefWin ${(r.rate * 100).toFixed(1)}% (n=${r.n}, Δ ${(r.delta * 100).toFixed(1)}pp)`,
-        ),
+        title: "Case type heterogeneity",
+        subtitle: `${r.caseType} · DefWin ${(r.rate * 100).toFixed(1)}% (n=${r.n}, Δ ${(r.delta * 100).toFixed(1)}pp)`,
         filterPatch: { metaboliteQuery: r.caseType === "NA" ? "" : r.caseType, topEdges: 500 },
         rowIds: r.rowIds ?? [],
       });
@@ -143,12 +138,10 @@ export default function AssistantDrawer({
   onApplyFilterPatch,
   onNavigate,
 }) {
-  const { lang } = useI18n();
-  const tx = React.useCallback((zh, en) => (String(lang) === "en" ? en : zh), [lang]);
   const activeTab = normalizeAssistantTabGroup(tab);
   const topInsights = React.useMemo(
-    () => computeTopInsights({ events: Array.isArray(events) ? events : [], selectionSummary, lang }),
-    [events, selectionSummary, lang],
+    () => computeTopInsights({ events: Array.isArray(events) ? events : [], selectionSummary }),
+    [events, selectionSummary],
   );
   const nextAction = React.useMemo(() => {
     const ranked = topInsights.filter((x) => x && x.rowIds?.length);
@@ -194,7 +187,6 @@ export default function AssistantDrawer({
         events: Array.isArray(events) ? events : [],
         filters: filters ?? null,
         maxRows: llmTopRows,
-        lang,
       });
       const resp = await chatCompletions({
         apiKey: cfg.apiKey,
@@ -207,12 +199,12 @@ export default function AssistantDrawer({
       });
       setLlmMeta({ mock: !!resp?.mock, reason: String(resp?.mockReason ?? "") });
       const text = extractAssistantText(resp);
-      if (!text) throw new Error(tx("LLM 返回为空（choices[0].message.content 缺失）", "LLM returned empty output (choices[0].message.content missing)"));
+      if (!text) throw new Error("LLM returned empty output (choices[0].message.content missing)");
       const { think, answer } = splitThink(text);
       const structured = parseStructuredLlmAnswer(answer);
       setLlmResult({ think, ...structured });
     } catch (e) {
-      setLlmError(e instanceof Error ? e.message : tx("Verifier 运行失败", "Verifier failed"));
+      setLlmError(e instanceof Error ? e.message : "Verifier failed");
     } finally {
       setLlmBusy(false);
     }
@@ -228,19 +220,19 @@ export default function AssistantDrawer({
       <div className="drawer-inner">
         <div className="drawer-head">
             <div>
-              <div className="card-title">{tx("助手", "Assistant")}</div>
-              <div className="card-sub">{tx("洞察/画像 · 证据/验证", "Insights/Firm · Evidence/Verifier")}</div>
+              <div className="card-title">Assistant</div>
+              <div className="card-sub">Insights/Firm · Evidence/Verifier</div>
             </div>
           <button className="btn small" onClick={onClose}>
-            {tx("关闭", "Close")}
+            Close
           </button>
         </div>
 
         <div className="drawer-body">
           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
             {[
-              ["analysis", tx("洞察/画像", "Insights/Firm")],
-              ["verify", tx("证据/验证", "Evidence/Verifier")],
+              ["analysis", "Insights/Firm"],
+              ["verify", "Evidence/Verifier"],
             ].map(([k, label]) => (
               <button
                 key={k}
@@ -260,15 +252,12 @@ export default function AssistantDrawer({
                 <div className="row split" style={{ gap: 10 }}>
                   <div style={{ minWidth: 0 }}>
                     <div className="card-title" style={{ fontSize: 13 }}>
-                      {tx("下一步", "Next step")}
+                      Next step
                     </div>
                     <div className="card-sub" style={{ marginTop: 4 }}>
                       {nextAction
-                        ? tx(
-                            `点击一次：自动高亮${nextAction.kind === "rivalry" ? "一条对手边" : "一个洞察"}，并打开 RowId 级证据。`,
-                            `Click once to auto-focus ${nextAction.kind === "rivalry" ? "a rivalry edge" : "an insight"} and open RowId-level evidence.`,
-                          )
-                        : tx("先导入数据，或点击右上角“演示”加载前50/前100示例。", 'Import data first, or use the top-right "Story" to load the Top50/Top100 presets.')}
+                        ? `Click once to auto-focus ${nextAction.kind === "rivalry" ? "a rivalry edge" : "an insight"} and open RowId-level evidence.`
+                        : 'Import data first, or use the top-right "Story" to load the Top50/Top100 presets.'}
                     </div>
                     {nextAction ? <div className="meta" style={{ marginTop: 6 }}>{nextAction.subtitle}</div> : null}
                   </div>
@@ -280,10 +269,10 @@ export default function AssistantDrawer({
                           if (nextAction.pair && typeof onSelectPair === "function") onSelectPair(nextAction.pair);
                           if (nextAction.filterPatch && typeof onApplyFilterPatch === "function") onApplyFilterPatch(nextAction.filterPatch);
                           if (typeof onNavigate === "function") onNavigate("network");
-                          if (typeof onOpenEvidence === "function") onOpenEvidence(nextAction.rowIds, tx(`下一步 · ${nextAction.subtitle}`, `Next step · ${nextAction.subtitle}`));
+                          if (typeof onOpenEvidence === "function") onOpenEvidence(nextAction.rowIds, `Next step · ${nextAction.subtitle}`);
                         }}
                       >
-                        {tx("聚焦 + 证据", "Focus + Evidence")}
+                        Focus + Evidence
                       </button>
                     ) : null}
                   </div>
@@ -291,7 +280,7 @@ export default function AssistantDrawer({
               </div>
 
               <div className="list">
-                <h4>{tx("前 5 条洞察（可点击）", "Top 5 insights (clickable)")}</h4>
+                <h4>Top 5 insights (clickable)</h4>
                 {topInsights.length ? (
                   topInsights.map((it) => (
                     <div
@@ -313,7 +302,7 @@ export default function AssistantDrawer({
                         {it.rowIds?.length ? (
                           <CitationBadge rowIds={it.rowIds} onOpenEvidence={(ids) => (typeof onOpenEvidence === "function" ? onOpenEvidence(ids, it.subtitle) : null)} />
                         ) : (
-                          <span className="pill">{tx("无证据", "no evidence")}</span>
+                          <span className="pill">no evidence</span>
                         )}
                       </div>
                     </div>
@@ -329,10 +318,10 @@ export default function AssistantDrawer({
 
               <div className="row split" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                 <div className="card-title" style={{ fontSize: 13 }}>
-                  {tx("律所画像", "Firm profile")}
+                  Firm profile
                 </div>
                 <button className="btn small" type="button" onClick={() => setAnalysisFirmOpen((v) => !v)}>
-                  {analysisFirmOpen ? tx("收起", "Collapse") : tx("展开", "Expand")}
+                  {analysisFirmOpen ? "Collapse" : "Expand"}
                 </button>
               </div>
 
@@ -340,7 +329,7 @@ export default function AssistantDrawer({
 
               {analysisFirmOpen ? (
                 !selectedCell || !details ? (
-                  <div className="notice">{tx("先在网络/矩阵中点击一个律所。", "Click a firm in Network/Matrix first.")}</div>
+                  <div className="notice">Click a firm in Network/Matrix first.</div>
                 ) : (
                   <>
                     <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
@@ -350,37 +339,37 @@ export default function AssistantDrawer({
                         </span>
                       </Tooltip>
                       <button className="btn small" onClick={() => (typeof onApplyFocus === "function" ? onApplyFocus(selectedCell, "any") : null)}>
-                        {tx("聚焦（任意）", "Focus (any)")}
+                        Focus (any)
                       </button>
                       <button className="btn small" onClick={() => (typeof onApplyFocus === "function" ? onApplyFocus(selectedCell, "outgoing") : null)}>
-                        {tx("聚焦（发出）", "Focus (out)")}
+                        Focus (out)
                       </button>
                       <button className="btn small" onClick={() => (typeof onApplyFocus === "function" ? onApplyFocus(selectedCell, "incoming") : null)}>
-                        {tx("聚焦（进入）", "Focus (in)")}
+                        Focus (in)
                       </button>
                       {focusCell === selectedCell ? (
                         <button className="btn danger small" onClick={onClearFocus}>
-                          {tx("清除聚焦", "Clear focus")}
+                          Clear focus
                         </button>
                       ) : null}
-                      {focusCell === selectedCell ? <span className="pill">{tx("已聚焦", "focused")} ({focusMode ?? "any"})</span> : null}
+                      {focusCell === selectedCell ? <span className="pill">focused ({focusMode ?? "any"})</span> : null}
                     </div>
 
                     <div className="metric">
                       <div>
-                        <div className="k">{tx("总权重", "Total weight")}</div>
+                        <div className="k">Total weight</div>
                         <div className="v">{fmt(details.totalWeight)}</div>
                       </div>
                       <div>
-                        <div className="k">{tx("总边数", "Total edges")}</div>
+                        <div className="k">Total edges</div>
                         <div className="v">{(details.inCount ?? 0) + (details.outCount ?? 0)}</div>
                       </div>
                       <div>
-                        <div className="k">{tx("发出权重", "Outgoing weight")}</div>
+                        <div className="k">Outgoing weight</div>
                         <div className="v">{fmt(details.outWeight)}</div>
                       </div>
                       <div>
-                        <div className="k">{tx("进入权重", "Incoming weight")}</div>
+                        <div className="k">Incoming weight</div>
                         <div className="v">{fmt(details.inWeight)}</div>
                       </div>
                     </div>
@@ -388,7 +377,7 @@ export default function AssistantDrawer({
                     <div className="divider" />
 
                     <div className="list">
-                      <h4>{tx("主要对手（作为原告）", "Top opponents (as plaintiff)")}</h4>
+                      <h4>Top opponents (as plaintiff)</h4>
                       {details.extra?.outgoingPartners?.length ? (
                         details.extra.outgoingPartners.map((p) => (
                           <div
@@ -422,7 +411,7 @@ export default function AssistantDrawer({
                     </div>
 
                     <div className="list">
-                      <h4>{tx("主要对手（作为被告）", "Top opponents (as defendant)")}</h4>
+                      <h4>Top opponents (as defendant)</h4>
                       {details.extra?.incomingPartners?.length ? (
                         details.extra.incomingPartners.map((p) => (
                           <div
@@ -479,21 +468,21 @@ export default function AssistantDrawer({
                   </div>
                   <div style={{ height: 10 }} />
                   <div className="notice">
-                    {tx("点击 ✅ 引用 可打开 RowId 级证据（含原始 JSON）。", "Click ✅ Citation to open RowId-level evidence (including raw JSON).")}
+                    Click ✅ Citation to open RowId-level evidence (including raw JSON).
                   </div>
                 </>
               ) : (
-                <div className="notice">{tx("先在网络/矩阵中点击一条边。", "Click an edge (pair) in Network/Matrix first.")}</div>
+                <div className="notice">Click an edge (pair) in Network/Matrix first.</div>
               )}
 
               <div style={{ height: 12 }} />
 
               <div className="row split" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                 <div className="card-title" style={{ fontSize: 13 }}>
-                  {tx("证据优先验证（LLM）", "Verifier-first LLM")}
+                  Verifier-first LLM
                 </div>
                 <button className="btn small" type="button" onClick={() => setVerifyVerifierOpen((v) => !v)}>
-                  {verifyVerifierOpen ? tx("收起", "Collapse") : tx("展开", "Expand")}
+                  {verifyVerifierOpen ? "Collapse" : "Expand"}
                 </button>
               </div>
 
@@ -502,13 +491,13 @@ export default function AssistantDrawer({
               {verifyVerifierOpen ? (
                 <>
                   <div className={apiUrl ? "notice" : "warning"}>
-                    <div style={{ fontWeight: 850, marginBottom: 6 }}>{tx("证据优先验证（LLM）", "Verifier-first LLM")}</div>
+                    <div style={{ fontWeight: 850, marginBottom: 6 }}>Verifier-first LLM</div>
                     <div>
-                      {tx("API 地址", "API URL")}: <span className="mono">{apiUrl || tx("（空）→ 模拟模式", "(empty) → mock mode")}</span>
+                      API URL: <span className="mono">{apiUrl || "(empty) → mock mode"}</span>
                     </div>
-                    {llmMeta.mock ? <div style={{ marginTop: 6 }}>{tx("模拟", "Mock")}: {llmMeta.reason || "ON"}</div> : null}
+                    {llmMeta.mock ? <div style={{ marginTop: 6 }}>Mock: {llmMeta.reason || "ON"}</div> : null}
                     <div style={{ marginTop: 6 }}>
-                      {tx("规则：结论必须引用 RowId；无证据 → 标注未验证。", "Rule: claims must cite RowIds; no evidence → mark as Unverified.")}
+                      Rule: claims must cite RowIds; no evidence → mark as Unverified.
                     </div>
                   </div>
 
@@ -516,7 +505,7 @@ export default function AssistantDrawer({
 
                   <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                     <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-                      <span className="pill">{tx("注入行数", "Top rows")}</span>
+                      <span className="pill">Top rows</span>
                       <select
                         className="select"
                         style={{ width: 120 }}
@@ -533,11 +522,11 @@ export default function AssistantDrawer({
                     <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                       {filterPatch && typeof onApplyFilterPatch === "function" ? (
                         <button className="btn small" onClick={() => onApplyFilterPatch(filterPatch)} disabled={llmBusy}>
-                          {tx("应用建议", "Apply suggestions")}
+                          Apply suggestions
                         </button>
                       ) : null}
                       <button className="btn small primary" onClick={runVerifier} disabled={llmBusy || !eventsAll?.length}>
-                        {llmBusy ? tx("运行中…", "Running…") : tx("运行验证", "Run verifier")}
+                        {llmBusy ? "Running…" : "Run verifier"}
                       </button>
                     </div>
                   </div>
@@ -546,7 +535,7 @@ export default function AssistantDrawer({
                   {llmBusy ? (
                     <div className="card pad anim-in" style={{ marginTop: 10 }}>
                       <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
-                        <div className="card-title">{tx("验证输出", "Verifier output")}</div>
+                        <div className="card-title">Verifier output</div>
                         <SmartLoader />
                       </div>
                     </div>
@@ -554,17 +543,17 @@ export default function AssistantDrawer({
 
                   {!llmBusy && claims.length ? (
                     <div className="list" style={{ marginTop: 10 }}>
-                      <h4>{tx("结论（可追溯）", "Claims")}</h4>
+                      <h4>Claims</h4>
                       {claims.map((c) => {
                         const ids = Array.isArray(c?.evidence_row_ids) ? c.evidence_row_ids : [];
                         const ok = ids.some((x) => Number.isFinite(Number(x)) && Number(x) > 0);
                         return (
                           <div key={c.id || c.title || JSON.stringify(c)} className="item">
                             <div style={{ minWidth: 0 }}>
-                              <div className="name">{c.title || c.id || tx("结论", "Claim")}</div>
+                              <div className="name">{c.title || c.id || "Claim"}</div>
                               <div className="meta">
-                                {c.confidence ? `confidence=${c.confidence}` : tx("confidence=？", "confidence=?")}
-                                {!ok ? tx(" · 未验证", " · Unverified") : ""}
+                                {c.confidence ? `confidence=${c.confidence}` : "confidence=?"}
+                                {!ok ? " · Unverified" : ""}
                               </div>
                             </div>
                             <div className="row" style={{ gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -576,7 +565,7 @@ export default function AssistantDrawer({
                                   }
                                 />
                               ) : (
-                                <span className="pill">{tx("未验证", "Unverified")}</span>
+                                <span className="pill">Unverified</span>
                               )}
                             </div>
                           </div>

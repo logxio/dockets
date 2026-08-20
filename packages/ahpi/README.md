@@ -1,6 +1,6 @@
 # AHPI - Asymmetric Heterogeneous Pairwise Interactions
 
-A Python implementation of the AHPI algorithm for ranking entities from pairwise comparison data, particularly suited for legal outcome analysis.
+An independent Python implementation of the AHPI algorithm for ranking entities from pairwise comparison data, particularly suited for legal outcome analysis. The method is from Mahari et al. (2025), cited below; this code is not theirs and is not affiliated with them.
 
 ## Overview
 
@@ -11,11 +11,12 @@ AHPI extends the classic Bradley-Terry model to handle:
 
 ## Installation
 
+From the repository root:
+
 ```bash
-# From the packages directory
 pip install -e packages/ahpi
 
-# Or with development dependencies
+# with test dependencies
 pip install -e "packages/ahpi[dev]"
 ```
 
@@ -63,7 +64,7 @@ Where:
 Main algorithm function. Returns `(scores, valence_probs, privileges)`.
 
 #### `fit_ahpi(df, **kwargs)`
-Convenience wrapper returning an `AHPIResult` object.
+Convenience wrapper returning an `AHPIResult` — same numbers, plus `n_iterations` and `converged` so you can tell a converged fit from one that hit the iteration ceiling.
 
 ### Preprocessing
 
@@ -83,6 +84,10 @@ Compute prediction accuracy on held-out data.
 
 #### `cross_validate(interactions, n_folds=5, ...)`
 K-fold cross-validation.
+
+## Caveats
+
+There is no regularization. Entities with one or two observations reach extreme scores, and `fsolve` on a sparse interaction type will walk `ε` toward the boundary. Filter by observation count, or add a prior, before treating the top of a ranking as meaningful.
 
 ## Reference
 

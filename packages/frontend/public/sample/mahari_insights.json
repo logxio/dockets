@@ -12,7 +12,7 @@
       "id": "rivalry:morrison & foerster__quinn emanuel urquhart & sullivan",
       "kind": "rivalry",
       "title": "Rivalry: morrison & foerster ↔ quinn emanuel urquhart & sullivan",
-      "summary": "双向高频对手关系（total_weight=18.47, balance=0.05）。",
+      "summary": "High-volume rivalry in both directions (total_weight=18.47, balance=0.05).",
       "firms": [
         "morrison & foerster",
         "quinn emanuel urquhart & sullivan"
@@ -51,7 +51,7 @@
       "id": "rivalry:kirkland & ellis__morgan, lewis & bockius",
       "kind": "rivalry",
       "title": "Rivalry: kirkland & ellis ↔ morgan, lewis & bockius",
-      "summary": "双向高频对手关系（total_weight=13.83, balance=0.11）。",
+      "summary": "High-volume rivalry in both directions (total_weight=13.83, balance=0.11).",
       "firms": [
         "kirkland & ellis",
         "morgan, lewis & bockius"
@@ -92,7 +92,7 @@
       "id": "rivalry:attorney general__morrison & foerster",
       "kind": "rivalry",
       "title": "Rivalry: attorney general ↔ morrison & foerster",
-      "summary": "双向高频对手关系（total_weight=13.77, balance=0.38）。",
+      "summary": "High-volume rivalry in both directions (total_weight=13.77, balance=0.38).",
       "firms": [
         "attorney general",
         "morrison & foerster"
@@ -137,7 +137,7 @@
       "id": "defendant_advantage:overall",
       "kind": "defendant_advantage",
       "title": "Defendant advantage (overall)",
-      "summary": "整体上 DefendantWin 占比 21.0%（case-level）。",
+      "summary": "DefendantWin accounts for 21.0% of outcomes overall (case-level).",
       "metrics": {
         "defendantWinRate": 0.20993227990970656,
         "cases": 443
@@ -166,7 +166,7 @@
       "id": "case_type_bias:contract",
       "kind": "case_type_bias",
       "title": "CaseType bias: contract",
-      "summary": "contract 的 DefendantWin 占比 9.1%（与整体差异 11.9%）。",
+      "summary": "DefendantWin accounts for 9.1% of contract cases (11.9 points off the overall rate).",
       "metrics": {
         "caseType": "contract",
         "defendantWinRate": 0.09090909090909091,

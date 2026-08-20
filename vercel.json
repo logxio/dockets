@@ -1,7 +1,0 @@
-{
-  "env": {
-    "VITE_LLM_FORCE_MOCK": "true",
-    "VITE_LLM_API_URL": ""
-  }
-}
-

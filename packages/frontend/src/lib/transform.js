@@ -82,7 +82,7 @@ export function buildEvents(rows, mapping) {
         report.nonPositiveFdr += 1;
         fdr = undefined;
       } else if (fdr === 0) {
-        // 常见于有限次 permutation：显示为 0，实际应理解为极小值
+        // A finite permutation run reports 0 when the true value is just below its resolution.
         report.zeroFdr += 1;
         fdr = 1e-300;
       } else if (fdr > 1) {
@@ -115,42 +115,31 @@ export function buildEvents(rows, mapping) {
   return { events, report };
 }
 
-export function summarizeWarnings(report, mapping, lang) {
-  const isEn = String(lang) === "en";
+export function summarizeWarnings(report, mapping) {
   const warnings = [];
   if (!mapping.score)
     warnings.push(
-      isEn
-        ? "Weight is not mapped: visualization weight falls back to 1 (consider providing a numeric column such as Weight/Stake/Amount)."
-        : "未映射权重列：可视化权重会回退为 1（建议提供数值列，如 Weight/Stake/Amount）。",
+      "Weight is not mapped: visualization weight falls back to 1 (consider providing a numeric column such as Weight/Stake/Amount).",
     );
   if (mapping.fdr && report.nonPositiveFdr)
-    warnings.push(isEn ? `Found ${report.nonPositiveFdr} rows with FDR<0 (treated as missing).` : `发现 ${report.nonPositiveFdr} 条 FDR<0（已当作缺失处理）。`);
+    warnings.push(`Found ${report.nonPositiveFdr} rows with FDR<0 (treated as missing).`);
   if (mapping.fdr && report.fdrOver1)
     warnings.push(
-      isEn
-        ? `Found ${report.fdrOver1} rows with FDR>1 (treated as missing; verify that this column is really FDR).`
-        : `发现 ${report.fdrOver1} 条 FDR>1（已当作缺失处理；请确认列是否真的是 FDR）。`,
+      `Found ${report.fdrOver1} rows with FDR>1 (treated as missing; verify that this column is really FDR).`,
     );
   if (report.droppedMissingSenderReceiver)
     warnings.push(
-      isEn
-        ? `${report.droppedMissingSenderReceiver} rows are missing Plaintiff/Defendant firm (skipped).`
-        : `有 ${report.droppedMissingSenderReceiver} 行缺少原告/被告律所（已跳过）。`,
+      `${report.droppedMissingSenderReceiver} rows are missing Plaintiff/Defendant firm (skipped).`,
     );
   if (mapping.fdr && report.nonNumericFdr)
-    warnings.push(isEn ? `${report.nonNumericFdr} rows have non-numeric FDR (treated as missing).` : `有 ${report.nonNumericFdr} 行 FDR 不是数值（已当作缺失处理）。`);
+    warnings.push(`${report.nonNumericFdr} rows have non-numeric FDR (treated as missing).`);
   if (mapping.score && report.nonNumericScore)
     warnings.push(
-      isEn
-        ? `${report.nonNumericScore} rows have non-numeric Weight (treated as missing).`
-        : `有 ${report.nonNumericScore} 行权重不是数值（已当作缺失处理）。`,
+      `${report.nonNumericScore} rows have non-numeric Weight (treated as missing).`,
     );
   if (mapping.fluxPass && report.fluxPassMissing)
     warnings.push(
-      isEn
-        ? `${report.fluxPassMissing} rows have empty Flux_PASS (won't be matched by the PASS-only filter).`
-        : `有 ${report.fluxPassMissing} 行 Flux_PASS 为空（不会被 “PASS-only” 过滤命中）。`,
+      `${report.fluxPassMissing} rows have empty Flux_PASS (won't be matched by the PASS-only filter).`,
     );
   return warnings;
 }

@@ -1,10 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
-import { createT, detectLang } from "../lib/i18n";
+import { t } from "../lib/i18n";
 
-function ErrorFallback({ title, error, onReset, lang }) {
-  const l = typeof lang === "string" && lang ? lang : detectLang({ search: window.location.search });
-  const t = createT(l);
+function ErrorFallback({ title, error, onReset }) {
   const message = error instanceof Error ? error.message : String(error ?? "Unknown error");
   return (
     <div className="warning" style={{ display: "grid", gap: 10, padding: 12 }}>
@@ -58,7 +56,7 @@ export default class ErrorBoundary extends React.Component {
     const { error } = this.state;
     if (error) {
       const Fallback = this.props.fallback ?? ErrorFallback;
-      return <Fallback title={this.props.title} error={error} onReset={this.reset} lang={this.props.lang} />;
+      return <Fallback title={this.props.title} error={error} onReset={this.reset} />;
     }
     return this.props.children;
   }

@@ -1,7 +1,6 @@
 import React from "react";
 import CitationBadge from "./CitationBadge";
 import Tooltip from "./Tooltip";
-import { useI18n } from "../lib/i18n";
 
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
@@ -69,7 +68,6 @@ function dotColor(t, isDark) {
 }
 
 export default function DotPlotView({ matrix, selectedCell, onSelectCell, selectedPair, onSelectPair, onOpenEvidence }) {
-  const { tx } = useI18n();
   const theme = useTheme();
   const isDark = theme === "dark";
   const [sortBy, setSortBy] = React.useState("senderSum");
@@ -250,7 +248,7 @@ export default function DotPlotView({ matrix, selectedCell, onSelectCell, select
     <div className="viz-view">
       <div className="row split" style={{ marginBottom: 10 }}>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-          <div className="pill">{tx("点大小：案件数 · 点颜色：权重强度", "Dot size: count · dot color: weight")}</div>
+          <div className="pill">Dot size: count · dot color: weight</div>
           {selectedPairEvidence ? (
             <CitationBadge
               rowIds={selectedPairEvidence.rowIds ?? []}
@@ -259,7 +257,7 @@ export default function DotPlotView({ matrix, selectedCell, onSelectCell, select
                   ? onOpenEvidence(ids, `Dot ${selectedPair.sender}→${selectedPair.receiver} · evidence`)
                   : null
               }
-              title={tx(`✅ 引用已验证 · ${selectedPair.sender}→${selectedPair.receiver}`, `✅ Citation verified · ${selectedPair.sender}→${selectedPair.receiver}`)}
+              title={`✅ Citation verified · ${selectedPair.sender}→${selectedPair.receiver}`}
             />
           ) : null}
         </div>
@@ -269,47 +267,47 @@ export default function DotPlotView({ matrix, selectedCell, onSelectCell, select
             style={{ width: 160 }}
             value={density}
             onChange={(e) => setDensityAndPersist(e.target.value)}
-            title={tx("显示密度：控制格子的最小尺寸与行高", "Density: controls the cell min size and row height")}
+            title="Density: controls the cell min size and row height"
           >
-            <option value="fit">{tx("密度：适配", "Density: Fit")}</option>
-            <option value="normal">{tx("密度：标准", "Density: Normal")}</option>
-            <option value="compact">{tx("密度：紧凑", "Density: Compact")}</option>
+            <option value="fit">Density: Fit</option>
+            <option value="normal">Density: Normal</option>
+            <option value="compact">Density: Compact</option>
           </select>
 
           <button
             className="btn small"
             type="button"
             onClick={() => zoomBy(-0.12)}
-            title={tx("缩小（也支持 Ctrl/⌘ + 滚轮）", "Zoom out (also supports Ctrl/⌘ + wheel)")}
+            title="Zoom out (also supports Ctrl/⌘ + wheel)"
           >
             −
           </button>
-          <span className="pill" title={tx("缩放比例", "Zoom")}>
+          <span className="pill" title="Zoom">
             {Math.round(z * 100)}%
           </span>
           <button
             className="btn small"
             type="button"
             onClick={() => zoomBy(0.12)}
-            title={tx("放大（也支持 Ctrl/⌘ + 滚轮）", "Zoom in (also supports Ctrl/⌘ + wheel)")}
+            title="Zoom in (also supports Ctrl/⌘ + wheel)"
           >
             +
           </button>
-          <button className="btn small" type="button" onClick={resetView} title={tx("复位缩放与视野", "Reset zoom & viewport")}>
-            {tx("复位", "Reset")}
+          <button className="btn small" type="button" onClick={resetView} title="Reset zoom & viewport">
+            Reset
           </button>
 
-          <span className="pill" title={tx("按住空格键，用鼠标拖拽平移视野", "Hold Space and drag to pan")}>
-            {spaceDown ? tx("平移：开", "Pan: ON") : tx("平移：按住空格", "Pan: hold Space")}
+          <span className="pill" title="Hold Space and drag to pan">
+            {spaceDown ? "Pan: ON" : "Pan: hold Space"}
           </span>
 
           <span className="muted" style={{ fontSize: 12 }}>
-            {tx("排序", "Sort")}
+            Sort
           </span>
           <select className="select" style={{ width: 180 }} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="senderSum">{tx("按原告总强度", "By plaintiff total")}</option>
-            <option value="receiverSum">{tx("按被告总强度", "By defendant total")}</option>
-            <option value="none">{tx("不排序", "No sort")}</option>
+            <option value="senderSum">By plaintiff total</option>
+            <option value="receiverSum">By defendant total</option>
+            <option value="none">No sort</option>
           </select>
         </div>
       </div>
@@ -334,7 +332,7 @@ export default function DotPlotView({ matrix, selectedCell, onSelectCell, select
             gridTemplateColumns: `${labelW}px repeat(${receivers.length}, minmax(${cellMin}px, 1fr))`,
           }}
         >
-          <div className="cell head sticky-top sticky-left">{tx("原告 \\\\ 被告", "Plaintiff \\\\ Defendant")}</div>
+          <div className="cell head sticky-top sticky-left">Plaintiff \\ Defendant</div>
           {receivers.map((r) => (
             <div
               key={r}
@@ -374,10 +372,7 @@ export default function DotPlotView({ matrix, selectedCell, onSelectCell, select
                   <div
                     key={`${s}\t${r}`}
                     className={`cell heat ${isPair(s, r) ? "selected-pair" : ""}`}
-                    title={tx(
-                      `${s} → ${r}\n案件数=${v.count}\n强度=${v.weight.toFixed(3)}`,
-                      `${s} → ${r}\ncount=${v.count}\nweight=${v.weight.toFixed(3)}`,
-                    )}
+                    title={`${s} → ${r}\ncount=${v.count}\nweight=${v.weight.toFixed(3)}`}
                     style={{ justifyContent: "center", cursor: v.count ? "pointer" : "default" }}
                     onClick={() => (v.count && typeof onSelectPair === "function" ? onSelectPair({ sender: s, receiver: r }) : null)}
                   >
@@ -400,10 +395,7 @@ export default function DotPlotView({ matrix, selectedCell, onSelectCell, select
         </div>
       </div>
       <div className="viz-note" style={{ marginTop: 10 }}>
-        {tx(
-          "点图：点大小=该 原告→被告 的案件数；点颜色=总体强度（聚合权重）。",
-          "Dot plot: dot size = number of cases for plaintiff→defendant; dot color = aggregated strength (weight).",
-        )}
+        Dot plot: dot size = number of cases for plaintiff→defendant; dot color = aggregated strength (weight).
       </div>
     </div>
   );

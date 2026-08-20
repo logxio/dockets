@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -46,17 +46,6 @@
         })();
         document.documentElement.dataset.theme = theme;
 
-        var lang = (function () {
-          var q = String(sp.get("lang") || "").trim().toLowerCase();
-          if (q === "en" || q === "zh") return q;
-          try {
-            var saved = String(window.localStorage.getItem("cldemo_lang") || "").trim().toLowerCase();
-            if (saved === "en" || saved === "zh") return saved;
-          } catch {}
-          return "zh";
-        })();
-        document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
-
         window.addEventListener("message", function (evt) {
           try {
             if (evt.origin !== location.origin) return;
@@ -65,14 +54,6 @@
             if (data.type === "cldemo:theme") {
               var next = normalizeTheme(data.theme);
               if (next) document.documentElement.dataset.theme = next;
-            }
-            if (data.type === "cldemo:lang") {
-              var nextLang = String(data.lang || "").trim().toLowerCase();
-              if (nextLang === "zh" || nextLang === "en") {
-                document.documentElement.lang = nextLang === "en" ? "en" : "zh-CN";
-                // Dispatch custom event for React to pick up
-                window.dispatchEvent(new CustomEvent("cldemo:langchange", { detail: { lang: nextLang } }));
-              }
             }
           } catch {}
         });

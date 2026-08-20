@@ -12,7 +12,6 @@ import ThinkBlock from "./ThinkBlock";
 import SmartLoader from "./SmartLoader";
 import MarkdownLite from "./MarkdownLite";
 import TypewriterMarkdown from "./TypewriterMarkdown";
-import { useI18n } from "../lib/i18n";
 
 function useTheme() {
   const [theme, setTheme] = React.useState(() => {
@@ -52,7 +51,6 @@ function Badge({ tone, children }) {
 }
 
 function KeyValueTable({ title, headers, rows }) {
-  const { tx } = useI18n();
   const theme = useTheme();
   const isDark = theme === "dark";
   const headerBg = isDark ? "rgba(2,6,23,0.92)" : "rgba(248,250,252,0.94)";
@@ -66,7 +64,7 @@ function KeyValueTable({ title, headers, rows }) {
       <div className="row split" style={{ gap: 10 }}>
         <div className="card-title">{title}</div>
         <div className="pill">
-          {tx("前", "Top")} {Math.min(rows.length, 8)}
+          Top {Math.min(rows.length, 8)}
         </div>
       </div>
       <div style={{ height: 10 }} />
@@ -139,7 +137,6 @@ export default function InsightsPanel({
   onOpenEvidence,
   onNavigate,
 }) {
-  const { lang, tx } = useI18n();
   const theme = useTheme();
   const isDark = theme === "dark";
 
@@ -187,7 +184,7 @@ export default function InsightsPanel({
   }, []);
 
   const hasRec = safeInsights.recommendations && Object.keys(safeInsights.recommendations).length > 0;
-  const md = toMarkdown(safeInsights, title || tx("基于结果的律所洞察", "Outcome-based law firm insights"), lang);
+  const md = toMarkdown(safeInsights, title || "Outcome-based law firm insights");
   const baseName = String(fileLabel || safeInsights.kind || "insights").replace(/\s+/g, "_");
 
   const exportMd = () => downloadText(`${baseName}.md`, md, "text/markdown;charset=utf-8");
@@ -208,7 +205,7 @@ export default function InsightsPanel({
     return subset.length ? subset : inputEvents;
   }, [events, llmSender, llmReceiver]);
 
-  const injectedCsvPreview = React.useMemo(() => buildTopRowsCsv(llmInputEvents, llmTopRows, lang), [llmInputEvents, llmTopRows, lang]);
+  const injectedCsvPreview = React.useMemo(() => buildTopRowsCsv(llmInputEvents, llmTopRows), [llmInputEvents, llmTopRows]);
 
   const injectedPromptPreview = React.useMemo(
     () =>
@@ -216,9 +213,8 @@ export default function InsightsPanel({
         events: llmInputEvents,
         filters: filters ?? null,
         maxRows: llmTopRows,
-        lang,
       }),
-    [llmInputEvents, llmTopRows, filters, lang],
+    [llmInputEvents, llmTopRows, filters],
   );
 
   const evidenceRows = React.useMemo(() => {
@@ -242,7 +238,6 @@ export default function InsightsPanel({
         eventsAll: Array.isArray(eventsAll) ? eventsAll : [],
         baseFilters: filters ?? {},
         topK: 10,
-        lang,
       });
       setRob(r);
     } finally {
@@ -258,7 +253,6 @@ export default function InsightsPanel({
         baseFilters: filters ?? {},
         n: 60,
         seed: 42,
-        lang,
       });
       setNullRes(r);
     } finally {
@@ -301,16 +295,16 @@ export default function InsightsPanel({
 
       setLlmMeta({ mock: !!resp?.mock, reason: String(resp?.mockReason ?? "") });
       if (resp?.mock && String(resp?.mockReason ?? "") && String(resp?.mockReason ?? "") !== "ENV_MISSING") {
-        setLlmError(tx("分析服务暂时不可用（已自动使用 Mock 数据）。", "LLM service is unavailable (using mock data)."));
+        setLlmError("LLM service is unavailable (using mock data).");
       }
       const text = extractAssistantText(resp);
-      if (!text) throw new Error(tx("LLM 返回为空（choices[0].message.content 缺失）", "Empty LLM response (choices[0].message.content missing)"));
+      if (!text) throw new Error("Empty LLM response (choices[0].message.content missing)");
       const { answer } = splitThink(text);
       const structured = parseStructuredLlmAnswer(answer);
       // Do not surface chain-of-thought; show a staged processing trace instead.
       setLlmResult({ think: "", ...structured });
     } catch (e) {
-      setLlmError(e instanceof Error ? e.message : tx("分析服务暂时不可用（已自动使用 Mock 数据）。", "LLM service is unavailable (using mock data)."));
+      setLlmError(e instanceof Error ? e.message : "LLM service is unavailable (using mock data).");
     } finally {
       if (llmStageTimer.current) window.clearInterval(llmStageTimer.current);
       setLlmBusy(false);
@@ -369,34 +363,34 @@ export default function InsightsPanel({
     if (!r) return;
     if (typeof onSelectPair === "function") onSelectPair({ sender: r.sender, receiver: r.receiver });
     if (typeof onOpenEvidence === "function")
-      onOpenEvidence([n], tx(`RowId ${n} · ${r.sender}→${r.receiver} · 证据`, `RowId ${n} · ${r.sender}→${r.receiver} · evidence`));
+      onOpenEvidence([n], `RowId ${n} · ${r.sender}→${r.receiver} · evidence`);
     navigate("table");
   };
 
   if (!hasInsights)
-    return <div className="notice">{tx("需要先导入数据并完成筛选，才能生成自动摘要/QC。", "Import data and finish filtering to generate auto-summary/QC.")}</div>;
+    return <div className="notice">Import data and finish filtering to generate auto-summary/QC.</div>;
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div className="row split" style={{ flexWrap: "wrap", gap: 10 }}>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-          <span className="pill">{insights.kind === "compare" ? tx("对比洞察", "Compare insights") : tx("单数据洞察", "Single insights")}</span>
+          <span className="pill">{insights.kind === "compare" ? "Compare insights" : "Single insights"}</span>
         </div>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
           {hasRec ? (
             <button
               className="btn small primary"
               onClick={applyRec}
-              title={tx("把建议写回左侧筛选条件（并写入 URL）", "Apply recommendations to the left filters (and write into URL)")}
+              title="Apply recommendations to the left filters (and write into URL)"
             >
-              {tx("一键应用建议", "Apply recommendations")}
+              Apply recommendations
             </button>
           ) : null}
           <button className="btn small" onClick={exportMd}>
-            {tx("导出摘要（MD）", "Export summary (MD)")}
+            Export summary (MD)
           </button>
           <button className="btn small" onClick={exportJson}>
-            {tx("导出 JSON", "Export JSON")}
+            Export JSON
           </button>
         </div>
       </div>
@@ -405,30 +399,27 @@ export default function InsightsPanel({
         <div className="card pad soft" style={{ boxShadow: "var(--shadow-soft)" }}>
           <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
             <div>
-              <div className="card-title">{tx("LLM 解读（基于当前筛选表）", "LLM interpretation (grounded in current filters)")}</div>
+              <div className="card-title">LLM interpretation (grounded in current filters)</div>
               <div className="card-sub">
-                {tx(
-                  "会把当前筛选结果的前 N 行（CSV）注入提示词，避免泛泛科普。",
-                  "Injects the Top-N filtered rows (CSV) into the prompt to avoid generic summaries.",
-                )}
+                Injects the Top-N filtered rows (CSV) into the prompt to avoid generic summaries.
               </div>
             </div>
             <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
               <button className="btn small primary" disabled={llmBusy} onClick={runLlm}>
                 <span className="row" style={{ gap: 8 }}>
                   {llmBusy ? <span className="spinner" /> : null}
-                  <span>{llmBusy ? tx("计算中…", "Computing...") : tx("生成洞察（LLM）", "Generate insights (LLM)")}</span>
+                  <span>{llmBusy ? "Computing..." : "Generate insights (LLM)"}</span>
                 </span>
               </button>
               <button className="btn small" disabled={llmBusy} onClick={() => setLlmCfg(loadLlmConfig())}>
-                {tx("刷新配置", "Reload config")}
+                Reload config
               </button>
               <button
                 className="btn small"
                 disabled={!llmResult.markdown}
                 onClick={() => navigator.clipboard.writeText(llmResult.markdown || "")}
               >
-                {tx("复制正文", "Copy")}
+                Copy
               </button>
             </div>
           </div>
@@ -438,7 +429,7 @@ export default function InsightsPanel({
             <span className="pill">model: {llmCfg.model}</span>
             <span className="pill">api: {apiUrl || "mock"}</span>
             {llmMeta.mock ? <span className="pill" style={{ fontWeight: 800 }}>DEMO MOCK{llmMeta.reason ? ` · ${llmMeta.reason}` : ""}</span> : null}
-            <span className="pill">{tx(`已注入 ${llmTopRows} 行（CSV）`, `Injected ${llmTopRows} rows (CSV)`)}</span>
+            <span className="pill">{`Injected ${llmTopRows} rows (CSV)`}</span>
             {llmSender.trim() ? <span className="pill">sender={llmSender.trim()}</span> : null}
             {llmReceiver.trim() ? <span className="pill">receiver={llmReceiver.trim()}</span> : null}
           </div>
@@ -446,7 +437,7 @@ export default function InsightsPanel({
           <div style={{ height: 10 }} />
           <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
             <div className="field" style={{ minWidth: 160 }}>
-              <div className="label">{tx("注入行数", "Top rows")}</div>
+              <div className="label">Top rows</div>
               <select className="select" value={String(llmTopRows)} onChange={(e) => setLlmTopRows(Number(e.target.value))} disabled={llmBusy}>
                 <option value="10">10</option>
                 <option value="20">20</option>
@@ -454,22 +445,22 @@ export default function InsightsPanel({
               </select>
             </div>
             <div className="field" style={{ flex: 1, minWidth: 220 }}>
-              <div className="label">{tx("原告（可选）", "Plaintiff (optional)")}</div>
+              <div className="label">Plaintiff (optional)</div>
               <input
                 className="input"
                 value={llmSender}
                 onChange={(e) => setLlmSender(e.target.value)}
-                placeholder={tx("例如 Skadden", "e.g. Skadden")}
+                placeholder="e.g. Skadden"
                 disabled={llmBusy}
               />
             </div>
             <div className="field" style={{ flex: 1, minWidth: 220 }}>
-              <div className="label">{tx("被告（可选）", "Defendant (optional)")}</div>
+              <div className="label">Defendant (optional)</div>
               <input
                 className="input"
                 value={llmReceiver}
                 onChange={(e) => setLlmReceiver(e.target.value)}
-                placeholder={tx("例如 Wachtell", "e.g. Wachtell")}
+                placeholder="e.g. Wachtell"
                 disabled={llmBusy}
               />
             </div>
@@ -478,20 +469,20 @@ export default function InsightsPanel({
           <div style={{ height: 10 }} />
           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
             <button className="btn small" type="button" disabled={llmBusy} onClick={() => navigator.clipboard.writeText(injectedCsvPreview)}>
-              {tx("复制注入 CSV", "Copy injected CSV")}
+              Copy injected CSV
             </button>
             <button className="btn small" type="button" disabled={llmBusy} onClick={() => navigator.clipboard.writeText(injectedPromptPreview)}>
-              {tx("复制提示词", "Copy prompt")}
+              Copy prompt
             </button>
           </div>
 
           <div style={{ height: 10 }} />
           <details className="details-block">
-            <summary className="details-summary">{tx("查看注入 CSV（前 N 行）", "View injected CSV (Top rows)")}</summary>
+            <summary className="details-summary">View injected CSV (Top rows)</summary>
             <pre className="details-pre">{injectedCsvPreview}</pre>
           </details>
           <details className="details-block">
-            <summary className="details-summary">{tx("查看完整提示词", "View full prompt")}</summary>
+            <summary className="details-summary">View full prompt</summary>
             <pre className="details-pre">{injectedPromptPreview}</pre>
           </details>
 
@@ -505,30 +496,27 @@ export default function InsightsPanel({
             <div key={`busy-${llmRunId}`} className="anim-in" style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
                 <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
-                  <div className="card-title">{tx("LLM 输出", "LLM output")}</div>
+                  <div className="card-title">LLM output</div>
                   <SmartLoader />
                 </div>
                 <div className="viz-note" style={{ marginTop: 8 }}>
-                  {tx(
-                    "正在处理复杂查询：证据抽样 → 实体归一化 → 稳健性线索 → 结论综合 → 证据绑定。",
-                    "Processing a complex query: evidence sampling → entity normalization → robustness cues → synthesis → evidence binding.",
-                  )}
+                  Processing a complex query: evidence sampling → entity normalization → robustness cues → synthesis → evidence binding.
                 </div>
               </div>
 
               <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
                 <div className="row split" style={{ gap: 10 }}>
-                  <div className="card-title">{tx("处理轨迹", "Processing trace")}</div>
-                  <span className="pill">{tx("高置信度链路", "High-signal path")}</span>
+                  <div className="card-title">Processing trace</div>
+                  <span className="pill">High-signal path</span>
                 </div>
                 <div style={{ height: 10 }} />
                 {[
-                  tx("抽样证据行（Top-weight + coverage）", "Sampling evidence rows (top-weight + coverage)"),
-                  tx("归一化实体（律所/案由/法院）", "Normalizing entities (firms / case type / court)"),
-                  tx("聚合统计与偏差检查", "Aggregating statistics & bias checks"),
-                  tx("生成可验证主张草案", "Drafting verifiable claims"),
-                  tx("为主张绑定 RowId 证据", "Binding RowId evidence to claims"),
-                  tx("整理成可交付报告", "Packaging deliverable report"),
+                  "Sampling evidence rows (top-weight + coverage)",
+                  "Normalizing entities (firms / case type / court)",
+                  "Aggregating statistics & bias checks",
+                  "Drafting verifiable claims",
+                  "Binding RowId evidence to claims",
+                  "Packaging deliverable report",
                 ].map((label, idx) => (
                   <div key={label} className="row" style={{ gap: 10, justifyContent: "space-between", marginTop: idx ? 8 : 0 }}>
                     <div className="row" style={{ gap: 8 }}>
@@ -539,16 +527,13 @@ export default function InsightsPanel({
                     </div>
                     {idx === 0 ? (
                       <span className="pill">
-                        {tx("注入", "Injected")} {llmTopRows}
+                        Injected {llmTopRows}
                       </span>
                     ) : null}
                   </div>
                 ))}
                 <div className="viz-note" style={{ marginTop: 10 }}>
-                  {tx(
-                    "请放心：该报告强调“可追溯证据”。你可以继续浏览网络图，我们会在后台完成生成。",
-                    "This report is evidence-forward. Keep exploring the graph; we’ll finish generation in the background.",
-                  )}
+                  This report is evidence-forward. Keep exploring the graph; we’ll finish generation in the background.
                 </div>
               </div>
 
@@ -567,25 +552,22 @@ export default function InsightsPanel({
               <div className="card pad" style={{ marginTop: 10, boxShadow: "var(--shadow-soft)" }}>
                 <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                   <div>
-                    <div className="card-title">{tx("稳健性与负对照", "Robustness & negative control")}</div>
+                    <div className="card-title">{"Robustness & negative control"}</div>
                     <div className="card-sub">
-                      {tx(
-                        "面向审稿：结论稳定性（多参数变体）+ 空对照（随机化）。",
-                        "For review: stability across parameter variants + a randomized null control.",
-                      )}
+                      For review: stability across parameter variants + a randomized null control.
                     </div>
                   </div>
                   <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                     <button className="btn small" disabled={robBusy} onClick={runRobustness} type="button">
                       <span className="row" style={{ gap: 8 }}>
                         {robBusy ? <span className="spinner" /> : null}
-                        <span>{robBusy ? tx("计算中…", "Computing...") : tx("计算稳健性", "Compute robustness")}</span>
+                        <span>{robBusy ? "Computing..." : "Compute robustness"}</span>
                       </span>
                     </button>
                     <button className="btn small" disabled={nullBusy} onClick={runNull} type="button">
                       <span className="row" style={{ gap: 8 }}>
                         {nullBusy ? <span className="spinner" /> : null}
-                        <span>{nullBusy ? tx("计算中…", "Computing...") : tx("运行空对照", "Run null control")}</span>
+                        <span>{nullBusy ? "Computing..." : "Run null control"}</span>
                       </span>
                     </button>
                   </div>
@@ -595,7 +577,7 @@ export default function InsightsPanel({
                   <div className="anim-in" style={{ marginTop: 10, display: "grid", gap: 10 }}>
                     {rob.warnings?.length ? (
                       <div className="warning">
-                        <div style={{ fontWeight: 850, marginBottom: 6 }}>{tx("稳健性警告", "Robustness warnings")}</div>
+                        <div style={{ fontWeight: 850, marginBottom: 6 }}>Robustness warnings</div>
                         <ul style={{ margin: 0, paddingLeft: 18 }}>
                           {rob.warnings.map((w) => (
                             <li key={w}>{w}</li>
@@ -604,27 +586,24 @@ export default function InsightsPanel({
                       </div>
                     ) : (
                       <div className="notice">
-                        {tx(
-                          "稳健性：未发现明显不稳定（仍建议结合原始数据与领域知识复核）。",
-                          "Robustness: no obvious instability detected (still review with raw data and domain knowledge).",
-                        )}
+                        Robustness: no obvious instability detected (still review with raw data and domain knowledge).
                       </div>
                     )}
 
                     <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-                      <span className="pill">{tx("变体数", "variants")}: {rob.variants}</span>
+                      <span className="pill">variants: {rob.variants}</span>
                       <span className="pill">TopK: {rob.topK}</span>
                     </div>
 
                     <div className="insights-grid-2">
                       <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
-                        <div className="card-title">{tx("基线：前几条边的稳定性", "Baseline: Top pairs stability")}</div>
+                        <div className="card-title">Baseline: Top pairs stability</div>
                         <div style={{ height: 10 }} />
                         <div className="scroll scroll-table-responsive" style={{ borderRadius: 12 }}>
                           <table style={{ borderCollapse: "collapse", width: "100%" }}>
                             <thead>
                               <tr style={{ background: headerBg }}>
-                                {[tx("原告", "Plaintiff"), tx("被告", "Defendant"), tx("支持度", "Support"), "avgRank"].map((h) => (
+                                {["Plaintiff", "Defendant", "Support", "avgRank"].map((h) => (
                                   <th
                                     key={h}
                                     style={{
@@ -645,7 +624,7 @@ export default function InsightsPanel({
                                 <tr
                                   key={`${p.sender}\t${p.receiver}`}
                                   style={{ background: idx % 2 ? rowOddBg : rowEvenBg, cursor: "pointer" }}
-                                  title={tx("点击：跳转表格并绑定到图", "Click: go to Table and bind to the graph")}
+                                  title="Click: go to Table and bind to the graph"
                                   onClick={() => {
                                     if (typeof onSelectPair === "function") onSelectPair({ sender: p.sender, receiver: p.receiver });
                                     navigate("table");
@@ -671,13 +650,13 @@ export default function InsightsPanel({
                       </div>
 
                       <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
-                        <div className="card-title">{tx("基线：前几类案件的稳定性", "Baseline: Top case types stability")}</div>
+                        <div className="card-title">Baseline: Top case types stability</div>
                         <div style={{ height: 10 }} />
                         <div className="scroll scroll-table-responsive" style={{ borderRadius: 12 }}>
                           <table style={{ borderCollapse: "collapse", width: "100%" }}>
                             <thead>
                               <tr style={{ background: headerBg }}>
-                                {[tx("案件类型", "Case type"), tx("支持度", "Support"), "avgRank"].map((h) => (
+                                {["Case type", "Support", "avgRank"].map((h) => (
                                   <th
                                     key={h}
                                     style={{
@@ -698,7 +677,7 @@ export default function InsightsPanel({
                                 <tr
                                   key={m.metabolite}
                                   style={{ background: idx % 2 ? rowOddBg : rowEvenBg, cursor: "pointer" }}
-                                  title={tx("点击：按该案件类型过滤并跳转表格", "Click: filter by this case type and go to Table")}
+                                  title="Click: filter by this case type and go to Table"
                                   onClick={() => {
                                     applyPatch({ metaboliteQuery: m.metabolite });
                                     navigate("table");
@@ -727,24 +706,18 @@ export default function InsightsPanel({
                   <div className="anim-in" style={{ marginTop: 10 }}>
                     <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                       <span className="pill">
-                        {tx("空对照", "null")} n={nullRes.n}
+                        null n={nullRes.n}
                       </span>
-                      <span className="pill">{tx("指标", "metric")}={nullRes.metric}</span>
-                      <span className="pill">{tx("观测值", "obs")}={nullRes.observed.toFixed(4)}</span>
-                      <span className="pill">{tx("均值", "mean")}={nullRes.mean.toFixed(4)}</span>
+                      <span className="pill">metric={nullRes.metric}</span>
+                      <span className="pill">obs={nullRes.observed.toFixed(4)}</span>
+                      <span className="pill">mean={nullRes.mean.toFixed(4)}</span>
                       <span className="pill">sd={nullRes.sd.toFixed(4)}</span>
                       <span className="pill">p≈{nullRes.pValue.toFixed(3)}</span>
                     </div>
                     <div className={nullRes.pValue < 0.05 ? "notice" : "warning"} style={{ marginTop: 10 }}>
                       {nullRes.pValue < 0.05
-                        ? tx(
-                            "空对照：观测到的结构集中度显著高于随机（支持“网络结构非随机”）。",
-                            "Null control: the observed concentration is significantly higher than random (supports a non-random structure).",
-                          )
-                        : tx(
-                            "空对照：观测到的结构集中度未显著高于随机（需谨慎：可能过滤过强/样本过小/结构不稳）。",
-                            "Null control: the observed concentration is not significantly higher than random (be cautious: filters may be too strict / sample too small / structure unstable).",
-                          )}
+                        ? "Null control: the observed concentration is significantly higher than random (supports a non-random structure)."
+                        : "Null control: the observed concentration is not significantly higher than random (be cautious: filters may be too strict / sample too small / structure unstable)."}
                       <div style={{ marginTop: 6 }} className="subtle">
                         {nullRes.note}
                       </div>
@@ -757,16 +730,13 @@ export default function InsightsPanel({
                 <div className="card pad" style={{ marginTop: 10, boxShadow: "var(--shadow-soft)" }}>
                   <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                     <div>
-                      <div className="card-title">{tx("Claims（审稿可追溯）", "Claims (review-traceable)")}</div>
+                      <div className="card-title">Claims (review-traceable)</div>
                       <div className="card-sub">
-                        {tx(
-                          "每条 claim 都绑定 evidence_row_ids；点击证据编号跳转表格并高亮对应边。",
-                          "Each claim is bound to evidence_row_ids; click an evidence RowId to jump to Table and highlight the corresponding edge.",
-                        )}
+                        Each claim is bound to evidence_row_ids; click an evidence RowId to jump to Table and highlight the corresponding edge.
                       </div>
                     </div>
                     <div className="pill">
-                      {payloadClaims.length} {tx("条", "claims")}
+                      {payloadClaims.length} claims
                     </div>
                   </div>
                   <div style={{ height: 10 }} />
@@ -790,10 +760,7 @@ export default function InsightsPanel({
                               <span
                                 className="pill"
                                 style={{ background: tone.bg, borderColor: tone.bd, color: tone.fg, fontWeight: 800 }}
-                                title={tx(
-                                  "审稿人关心：置信度不是结论强弱，而是对当前筛选/口径的稳健程度",
-                                  "Reviewer note: confidence is not claim strength; it reflects robustness under the current filters/definitions.",
-                                )}
+                                title="Reviewer note: confidence is not claim strength; it reflects robustness under the current filters/definitions."
                               >
                                 {String(c?.confidence || "medium").toUpperCase()}
                               </span>
@@ -806,10 +773,7 @@ export default function InsightsPanel({
                                   type="button"
                                   className="chip"
                                   onClick={() => selectEvidenceRowId(rid)}
-                                  title={tx(
-                                    "点击：跳转表格并高亮该 RowId 对应的 原告→被告",
-                                    "Click: go to Table and highlight the plaintiff→defendant for this RowId",
-                                  )}
+                                  title="Click: go to Table and highlight the plaintiff→defendant for this RowId"
                                 >
                                   RowId {rid}
                                 </button>
@@ -823,7 +787,7 @@ export default function InsightsPanel({
                           ) : null}
                           {Array.isArray(c?.caveats) && c.caveats.length ? (
                             <div className="notice" style={{ marginTop: 8 }}>
-                              <div style={{ fontWeight: 800, marginBottom: 6 }}>{tx("注意事项", "Caveats")}</div>
+                              <div style={{ fontWeight: 800, marginBottom: 6 }}>Caveats</div>
                               <ul style={{ margin: 0, paddingLeft: 18 }}>
                                 {c.caveats.slice(0, 6).map((x, j) => (
                                   <li key={j}>{String(x)}</li>
@@ -842,14 +806,14 @@ export default function InsightsPanel({
                 <div className="card pad" style={{ marginTop: 10, boxShadow: "var(--shadow-soft)" }}>
                   <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                     <div>
-                      <div className="card-title">{tx("关键实体（可点击）", "Key entities (clickable)")}</div>
+                      <div className="card-title">Key entities (clickable)</div>
                       <div className="card-sub">
-                        {tx("点击后会把筛选条件写回左侧（并写入 URL）。", "Click to write filters back to the left panel (and into URL).")}
+                        Click to write filters back to the left panel (and into URL).
                       </div>
                     </div>
                     {payloadPatch && typeof payloadPatch === "object" ? (
                       <button className="btn small primary" onClick={() => applyPatch(payloadPatch)}>
-                        {tx("一键应用 LLM 建议筛选", "Apply LLM suggested filters")}
+                        Apply LLM suggested filters
                       </button>
                     ) : null}
                   </div>
@@ -867,11 +831,11 @@ export default function InsightsPanel({
                           }}
                           type="button"
                         >
-                          {tx("案件类型", "case type")}: {m}
+                          case type: {m}
                         </button>
                       ))
                     ) : (
-                      <span className="chip muted">{tx("无案件类型", "no case types")}</span>
+                      <span className="chip muted">no case types</span>
                     )}
 
                     {normalizeArray(payloadEntities.senders).map((c) => (
@@ -884,7 +848,7 @@ export default function InsightsPanel({
                         }}
                         type="button"
                       >
-                        {tx("原告", "plaintiff")}: {c}
+                        plaintiff: {c}
                       </button>
                     ))}
                     {normalizeArray(payloadEntities.receivers).map((c) => (
@@ -897,7 +861,7 @@ export default function InsightsPanel({
                         }}
                         type="button"
                       >
-                        {tx("被告", "defendant")}: {c}
+                        defendant: {c}
                       </button>
                     ))}
                     {(Array.isArray(payloadEntities.pairs) ? payloadEntities.pairs : []).slice(0, 6).map((p, idx) => {
@@ -913,19 +877,16 @@ export default function InsightsPanel({
                             navigate("network");
                           }}
                           type="button"
-                          title={tx(
-                            "点击：选择该边并跳转到网络（同时绑定到矩阵/点图/表格高亮）",
-                            "Click: select this edge and go to Network (also binds highlights in Matrix/DotPlot/Table)",
-                          )}
+                          title="Click: select this edge and go to Network (also binds highlights in Matrix/DotPlot/Table)"
                         >
-                          {tx("边", "pair")}: {s} → {r}
+                          pair: {s} → {r}
                         </button>
                       );
                     })}
                   </div>
 
                   <details className="details-block" style={{ marginTop: 10 }}>
-                    <summary className="details-summary">{tx("查看 PAYLOAD_JSON", "View PAYLOAD_JSON")}</summary>
+                    <summary className="details-summary">View PAYLOAD_JSON</summary>
                     <pre className="details-pre">{JSON.stringify(llmResult.payload, null, 2)}</pre>
                   </details>
                 </div>
@@ -935,16 +896,13 @@ export default function InsightsPanel({
                 <div className="card pad" style={{ marginTop: 10, boxShadow: "var(--shadow-soft)" }}>
                   <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                     <div>
-                      <div className="card-title">{tx("证据（注入行）", "Evidence (Injected top rows)")}</div>
+                      <div className="card-title">Evidence (Injected top rows)</div>
                       <div className="card-sub">
-                        {tx(
-                          "点击行：跳转表格并高亮该 原告→被告；右侧按钮可直接绑定到图。",
-                          "Click a row to jump to Table and highlight the plaintiff→defendant; use the right buttons to bind to the graph.",
-                        )}
+                        Click a row to jump to Table and highlight the plaintiff→defendant; use the right buttons to bind to the graph.
                       </div>
                     </div>
                     <div className="pill">
-                      {tx("行数", "rows")}: {evidenceRows.length}
+                      rows: {evidenceRows.length}
                     </div>
                   </div>
                   <div style={{ height: 10 }} />
@@ -954,13 +912,13 @@ export default function InsightsPanel({
                         <tr style={{ background: headerBg }}>
                           {[
                             "RowId",
-                            tx("原告", "Plaintiff"),
-                            tx("被告", "Defendant"),
-                            tx("案件类型", "Case type"),
-                            tx("法院", "Court"),
-                            tx("结果", "Outcome"),
-                            tx("权重", "Weight"),
-                            tx("绑定", "Bind"),
+                            "Plaintiff",
+                            "Defendant",
+                            "Case type",
+                            "Court",
+                            "Outcome",
+                            "Weight",
+                            "Bind",
                           ].map((h) => (
                             <th
                               key={h}
@@ -990,7 +948,7 @@ export default function InsightsPanel({
                               if (typeof onSelectPair === "function") onSelectPair({ sender: r.sender, receiver: r.receiver });
                               navigate("table");
                             }}
-                            title={tx("点击跳转表格并高亮", "Click to go to Table and highlight")}
+                            title="Click to go to Table and highlight"
                           >
                             <td style={{ padding: "8px 10px", fontSize: 12, borderBottom: `1px solid ${cellBorder}` }}>
                               {r.rowId}
@@ -1010,7 +968,7 @@ export default function InsightsPanel({
                                   applyPatch({ metaboliteQuery: r.caseType });
                                   navigate("table");
                                 }}
-                                title={tx("点击：按该案件类型过滤并跳转表格", "Click: filter by this case type and go to Table")}
+                                title="Click: filter by this case type and go to Table"
                               >
                                 {r.caseType || "NA"}
                               </button>
@@ -1024,7 +982,7 @@ export default function InsightsPanel({
                                   applyPatch({ sensorQuery: r.court });
                                   navigate("table");
                                 }}
-                                title={tx("点击：按该法院过滤并跳转表格", "Click: filter by this court and go to Table")}
+                                title="Click: filter by this court and go to Table"
                               >
                                 {r.court || "NA"}
                               </button>
@@ -1038,7 +996,7 @@ export default function InsightsPanel({
                                   applyPatch({ annotationQuery: r.outcome });
                                   navigate("table");
                                 }}
-                                title={tx("点击：按该结果过滤并跳转表格", "Click: filter by this outcome and go to Table")}
+                                title="Click: filter by this outcome and go to Table"
                               >
                                 {r.outcome || "NA"}
                               </button>
@@ -1059,7 +1017,7 @@ export default function InsightsPanel({
                                       navigate(v);
                                     }}
                                   >
-                                    {v === "network" ? tx("网络", "Network") : v === "matrix" ? tx("矩阵", "Matrix") : tx("点图", "Dot plot")}
+                                    {v === "network" ? "Network" : v === "matrix" ? "Matrix" : "Dot plot"}
                                   </button>
                                 ))}
                               </div>
@@ -1074,12 +1032,12 @@ export default function InsightsPanel({
 
               {llmResult.markdown ? (
                 <div className="card pad" style={{ marginTop: 10, boxShadow: "var(--shadow-soft)" }}>
-                  <div className="card-title">{tx("LLM 报告", "LLM report")}</div>
+                  <div className="card-title">LLM report</div>
                   <div style={{ height: 10 }} />
                   <TypewriterMarkdown markdown={llmResult.markdown} cps={45} entities={mdEntities} onEntityClick={onEntityClick} />
                 </div>
               ) : (
-                <div className="notice">{tx("模型未返回正文内容。", "Model returned no main content.")}</div>
+                <div className="notice">Model returned no main content.</div>
               )}
             </div>
           ) : null}
@@ -1087,7 +1045,7 @@ export default function InsightsPanel({
       ) : null}
 
       <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
-        <div className="card-title">{title || tx("自动摘要", "Summary")}</div>
+        <div className="card-title">{title || "Summary"}</div>
         <div style={{ height: 10 }} />
         <ul style={{ margin: 0, paddingLeft: 18, color: isDark ? "rgba(248,250,252,0.82)" : "rgba(15,23,42,0.82)", fontSize: 13 }}>
           {(insights.summaryLines ?? []).map((l) => (
@@ -1098,8 +1056,8 @@ export default function InsightsPanel({
 
       <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
         <div className="row split">
-          <div className="card-title">{tx("QC（可解释的质量检查）", "QC (explainable checks)")}</div>
-          <div className="pill">{insights.qc?.length ? `${insights.qc.length} ${tx("项", "items")}` : `0 ${tx("项", "item")}`}</div>
+          <div className="card-title">QC (explainable checks)</div>
+          <div className="pill">{insights.qc?.length ? `${insights.qc.length} ${"items"}` : `0 ${"item"}`}</div>
         </div>
         <div style={{ height: 10 }} />
         {insights.qc?.length ? (
@@ -1115,7 +1073,7 @@ export default function InsightsPanel({
             ))}
           </div>
         ) : (
-          <div className="notice">{tx("未发现明显异常（仍建议结合原始数据与领域知识复核）。", "No obvious anomalies (still review with raw data and domain knowledge).")}</div>
+          <div className="notice">No obvious anomalies (still review with raw data and domain knowledge).</div>
         )}
       </div>
 
@@ -1123,14 +1081,14 @@ export default function InsightsPanel({
         <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
           <div className="row split" style={{ flexWrap: "wrap", gap: 10 }}>
             <div>
-              <div className="card-title">{tx("建议", "Recommendations")}</div>
+              <div className="card-title">Recommendations</div>
               <div className="card-sub">
-                {tx("可一键写回左侧筛选，用于“快速收敛规模/提高稳健性”。", "Can be applied to the left filters to reduce scale and improve robustness.")}
+                Can be applied to the left filters to reduce scale and improve robustness.
               </div>
             </div>
             <div className="row" style={{ gap: 8 }}>
               <button className="btn small primary" onClick={applyRec}>
-                {tx("应用建议", "Apply")}
+                Apply
               </button>
             </div>
           </div>
@@ -1144,29 +1102,29 @@ export default function InsightsPanel({
       {insights.kind === "single" ? (
         <div className="insights-grid-2">
           <KeyValueTable
-            title={tx("主要原告律所", "Top plaintiff firms")}
-            headers={[tx("律所", "Firm"), "outWeight", "outCount"]}
+            title="Top plaintiff firms"
+            headers={["Firm", "outWeight", "outCount"]}
             rows={(insights.top?.topSenders ?? []).map((r) => [r.id, r.outWeight.toFixed(2), String(r.outCount)])}
           />
           <KeyValueTable
-            title={tx("主要被告律所", "Top defendant firms")}
-            headers={[tx("律所", "Firm"), "inWeight", "inCount"]}
+            title="Top defendant firms"
+            headers={["Firm", "inWeight", "inCount"]}
             rows={(insights.top?.topReceivers ?? []).map((r) => [r.id, r.inWeight.toFixed(2), String(r.inCount)])}
           />
           <KeyValueTable
-            title={tx("主要案件类型", "Top case types")}
-            headers={[tx("案件类型", "Case type"), "weight", "count"]}
+            title="Top case types"
+            headers={["Case type", "weight", "count"]}
             rows={(insights.top?.topMet ?? []).map((r) => [r.key, r.weight.toFixed(2), String(r.count)])}
           />
           <KeyValueTable
-            title={tx("主要法院", "Top courts")}
-            headers={[tx("法院", "Court"), "weight", "count"]}
+            title="Top courts"
+            headers={["Court", "weight", "count"]}
             rows={(insights.top?.topSens ?? []).map((r) => [r.key, r.weight.toFixed(2), String(r.count)])}
           />
           <div className="insights-full-row">
             <KeyValueTable
-              title={tx("主要边（聚合）", "Top edges (aggregated)")}
-              headers={[tx("原告", "Plaintiff"), tx("被告", "Defendant"), "weight", "count"]}
+              title="Top edges (aggregated)"
+              headers={["Plaintiff", "Defendant", "weight", "count"]}
               rows={(insights.top?.topEdges ?? []).map((r) => [r.sender, r.receiver, r.weight.toFixed(2), String(r.count)])}
             />
           </div>
@@ -1174,18 +1132,18 @@ export default function InsightsPanel({
       ) : (
         <div className="insights-grid-2">
           <KeyValueTable
-            title={tx("增幅最大（B-A）", "Top increased (B-A)")}
-            headers={[tx("原告", "Plaintiff"), tx("被告", "Defendant"), "Δ"]}
+            title="Top increased (B-A)"
+            headers={["Plaintiff", "Defendant", "Δ"]}
             rows={(insights.top?.topUp ?? []).map((r) => [r.sender, r.receiver, r.delta.toFixed(2)])}
           />
           <KeyValueTable
-            title={tx("降幅最大（B-A）", "Top decreased (B-A)")}
-            headers={[tx("原告", "Plaintiff"), tx("被告", "Defendant"), "Δ"]}
+            title="Top decreased (B-A)"
+            headers={["Plaintiff", "Defendant", "Δ"]}
             rows={(insights.top?.topDown ?? []).map((r) => [r.sender, r.receiver, r.delta.toFixed(2)])}
           />
           <KeyValueTable
-            title={tx("按结果分层（Δ）", "By outcome (Δ)")}
-            headers={[tx("结果", "Outcome"), "A", "B", "Δ(B-A)"]}
+            title="By outcome (Δ)"
+            headers={["Outcome", "A", "B", "Δ(B-A)"]}
             rows={(insights.top?.annDiffRows ?? []).map((r) => [r.key, r.weightA.toFixed(2), r.weightB.toFixed(2), r.delta.toFixed(2)])}
           />
         </div>

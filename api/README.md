@@ -1,136 +1,110 @@
-# Legal Intelligence API
+# API
 
-FastAPI backend for law firm ranking and litigation outcome prediction using the AHPI algorithm.
+FastAPI service over the AHPI estimator and the matter pipeline. Fit a ranking, predict a matchup, or run the document-to-decision-pack workflow.
 
-## Quick Start
+Everything is in-process: fits and matters live in dictionaries on the running app, not a database. Restarting drops them.
 
-### Installation
+## Running
+
+The service imports `ahpi` and `legal-pipeline` from this repo, so install all three from the root:
 
 ```bash
-# Install dependencies
-pip install -e .
-
-# Or with development dependencies
-pip install -e ".[dev]"
-
-# Also install the AHPI package
-pip install -e ../packages/ahpi
+pip install -e packages/ahpi -e packages/pipeline -e api
+uvicorn app.main:app --app-dir api --port 8001
 ```
 
-### Running the Server
+Interactive docs at `/docs`, ReDoc at `/redoc`, schema at `/openapi.json`.
+
+Docker builds from the repository root, since the image needs the two local packages:
 
 ```bash
-# Development mode (with auto-reload)
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Or using the entry point
-legal-api
-
-# Production mode
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-### Docker
-
-```bash
-# Build
-docker build -t legal-api .
-
-# Run
+docker build -f api/Dockerfile -t legal-api .
 docker run -p 8000:8000 legal-api
 ```
 
-## API Endpoints
+Tests:
 
-### Fitting
+```bash
+pytest api/tests
+```
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/fit` | Fit model on JSON interaction data |
-| POST | `/api/fit/csv` | Fit model from uploaded CSV file |
-| GET | `/api/fit/{fit_id}/rankings` | Get rankings from a fit |
-| GET | `/api/fit/{fit_id}/params` | Get case type parameters |
+## Endpoints
+
+Everything is under `/api`.
+
+### Ranking
+
+| Method | Path | |
+|--------|------|--|
+| `POST` | `/fit` | Fit on JSON interactions |
+| `POST` | `/fit/csv` | Fit on an uploaded CSV |
+| `GET` | `/fit/{fit_id}/rankings` | Rankings from a fit |
+| `GET` | `/fit/{fit_id}/params` | Per-case-type valence and privilege |
 
 ### Prediction
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/predict` | Predict case outcome |
-| POST | `/api/predict/counterfactual` | What-if analysis |
-| GET | `/api/predict/compare` | Compare two firms |
+| Method | Path | |
+|--------|------|--|
+| `POST` | `/predict` | Outcome for a plaintiff/defendant pair |
+| `POST` | `/predict/counterfactual` | Same pair, perturbed parameters |
+| `GET` | `/predict/compare` | Two firms head to head |
 
-### Health
+### Matters
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Health check |
+| Method | Path | |
+|--------|------|--|
+| `POST` | `/matters/parse-document` | Text or PDF to a structured brief |
+| `POST` | `/matters/intake` | Parse and create in one call, returns a job (202) |
+| `POST` `GET` | `/matters` | Create, list |
+| `GET` `PATCH` `DELETE` | `/matters/{id}` | Read, update, delete |
+| `POST` | `/matters/{id}/candidates:recommend` | Rank candidate firms |
+| `GET` `PUT` | `/matters/{id}/candidates` | Read, overwrite the shortlist |
+| `GET` | `/matters/{id}/evidence` | Comparable cases behind a candidate |
+| `POST` `GET` | `/matters/{id}/packs` | Build a decision pack (202), list packs |
+| `GET` | `/matters/{id}/packs/{pack_id}` | One pack |
+| `GET` | `/matters/{id}/packs/{pack_id}/export.html` | Standalone HTML |
+| `GET` | `/matters/{id}/audit` | Audit trail for the matter |
 
-## Example Usage
+### Jobs and health
 
-### Fit a Model
+| Method | Path | |
+|--------|------|--|
+| `GET` | `/jobs/{job_id}` | Poll a 202-accepted job |
+| `GET` | `/health` | Liveness, AHPI version, active fit count |
+
+## Examples
 
 ```bash
-curl -X POST "http://localhost:8000/api/fit" \
+curl -X POST http://localhost:8001/api/fit \
   -H "Content-Type: application/json" \
   -d '{
     "interactions": [
-      {"plaintiff_firm": "FirmA", "defendant_firm": "FirmB", "outcome": 0, "case_type": "civil"},
-      {"plaintiff_firm": "FirmB", "defendant_firm": "FirmC", "outcome": 1, "case_type": "civil"}
+      {"plaintiff_firm": "FirmA", "defendant_firm": "FirmB", "outcome": 0, "case_type": "contract"},
+      {"plaintiff_firm": "FirmB", "defendant_firm": "FirmC", "outcome": 1, "case_type": "contract"}
     ],
     "mode": "demo",
     "top_n": 50
   }'
 ```
 
-### Predict Outcome
+```bash
+curl -X POST http://localhost:8001/api/fit/csv \
+  -F "file=@interactions.csv" -F "mode=demo"
+```
 
 ```bash
-curl -X POST "http://localhost:8000/api/predict" \
+curl -X POST http://localhost:8001/api/predict \
   -H "Content-Type: application/json" \
-  -d '{
-    "fit_id": "fit_abc123",
-    "plaintiff_firm": "FirmA",
-    "defendant_firm": "FirmB",
-    "case_type": "civil"
-  }'
+  -d '{"fit_id": "fit_abc123", "plaintiff_firm": "FirmA", "defendant_firm": "FirmB", "case_type": "contract"}'
 ```
 
-### Upload CSV
+## Environment
 
-```bash
-curl -X POST "http://localhost:8000/api/fit/csv" \
-  -F "file=@data/interactions.csv" \
-  -F "mode=demo"
-```
+| Variable | Default | |
+|----------|---------|--|
+| `HOST` | `0.0.0.0` | Bind address, used by the `legal-api` entry point |
+| `PORT` | `8000` | Port for the same |
+| `RELOAD` | `true` | Auto-reload |
+| `CORS_ORIGINS` | `*` | Comma-separated allowed origins |
 
-## Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `HOST` | `0.0.0.0` | Server host |
-| `PORT` | `8000` | Server port |
-| `RELOAD` | `true` | Enable auto-reload |
-| `CORS_ORIGINS` | `*` | Allowed CORS origins |
-
-## API Documentation
-
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-- OpenAPI JSON: http://localhost:8000/openapi.json
-
-## Testing
-
-```bash
-# Run tests
-pytest
-
-# With coverage
-pytest --cov=app
-
-# Verbose output
-pytest -v
-```
-
-## License
-
-MIT License
+`CORS_ORIGINS` defaults to `*` with credentials allowed. Set it before putting this anywhere public.

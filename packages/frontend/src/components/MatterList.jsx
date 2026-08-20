@@ -3,24 +3,24 @@ import { listMatters, deleteMatter } from "../lib/apiClient";
 import { Briefcase, Plus, Trash2, ChevronRight, AlertCircle, RefreshCw } from "lucide-react";
 
 const STATUS_LABELS = {
-  draft: { zh: "草稿", en: "Draft", color: "gray" },
-  ready: { zh: "就绪", en: "Ready", color: "green" },
-  archived: { zh: "已归档", en: "Archived", color: "orange" },
+  draft: { label: "Draft", color: "gray" },
+  ready: { label: "Ready", color: "green" },
+  archived: { label: "Archived", color: "orange" },
 };
 
 const CASE_TYPE_LABELS = {
-  civil_rights: { zh: "民权", en: "Civil Rights" },
-  contract: { zh: "合同", en: "Contract" },
-  labor: { zh: "劳动", en: "Labor" },
-  torts: { zh: "侵权", en: "Torts" },
-  other: { zh: "其他", en: "Other" },
+  civil_rights: "Civil Rights",
+  contract: "Contract",
+  labor: "Labor",
+  torts: "Torts",
+  other: "Other",
 };
 
-function formatDate(isoString, lang) {
+function formatDate(isoString) {
   if (!isoString) return "-";
   try {
     const d = new Date(isoString);
-    return d.toLocaleDateString(lang === "en" ? "en-US" : "zh-CN", {
+    return d.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -30,8 +30,7 @@ function formatDate(isoString, lang) {
   }
 }
 
-export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter }) {
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
+export default function MatterList({ onSelectMatter, onCreateMatter }) {
 
   const [matters, setMatters] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -45,11 +44,11 @@ export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter
       const res = await listMatters({ limit: 100 });
       setMatters(res.items || []);
     } catch (err) {
-      setError(err.message || tx("加载失败", "Failed to load"));
+      setError(err.message || "Failed to load");
     } finally {
       setLoading(false);
     }
-  }, [tx]);
+  }, []);
 
   React.useEffect(() => {
     loadMatters();
@@ -59,10 +58,7 @@ export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter
     async (e, matterId, matterName) => {
       e.stopPropagation();
       const confirmed = window.confirm(
-        tx(
-          `确定要删除案件 "${matterName}" 吗？此操作不可撤销。`,
-          `Are you sure you want to delete "${matterName}"? This action cannot be undone.`
-        )
+        `Are you sure you want to delete "${matterName}"? This action cannot be undone.`
       );
       if (!confirmed) return;
 
@@ -71,12 +67,12 @@ export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter
         await deleteMatter(matterId);
         setMatters((prev) => prev.filter((m) => m.id !== matterId));
       } catch (err) {
-        alert(err.message || tx("删除失败", "Delete failed"));
+        alert(err.message || "Delete failed");
       } finally {
         setDeleting(null);
       }
     },
-    [tx]
+    []
   );
 
   return (
@@ -87,19 +83,19 @@ export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter
           <div>
             <h1
               className="matter-list-title"
-              title={tx("管理您的法律案件与决策报告", "Manage your legal matters and decision packs")}
+              title="Manage your legal matters and decision packs"
             >
-              {tx("案件列表", "Matters")}
+              Matters
             </h1>
           </div>
         </div>
         <div className="matter-list-actions">
-          <button className="btn small" onClick={loadMatters} disabled={loading} title={tx("刷新", "Refresh")}>
+          <button className="btn small" onClick={loadMatters} disabled={loading} title="Refresh">
             <RefreshCw size={16} className={loading ? "spin" : ""} />
           </button>
           <button className="btn primary" onClick={onCreateMatter}>
             <Plus size={16} />
-            <span>{tx("新建案件", "New Matter")}</span>
+            <span>New Matter</span>
           </button>
         </div>
       </div>
@@ -109,22 +105,22 @@ export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter
           <AlertCircle size={20} />
           <span>{error}</span>
           <button className="btn small" onClick={loadMatters}>
-            {tx("重试", "Retry")}
+            Retry
           </button>
         </div>
       ) : loading && matters.length === 0 ? (
         <div className="matter-list-loading">
           <RefreshCw size={24} className="spin" />
-          <span>{tx("加载中...", "Loading...")}</span>
+          <span>Loading...</span>
         </div>
       ) : matters.length === 0 ? (
         <div className="matter-list-empty">
           <Briefcase size={48} className="matter-list-empty-icon" />
-          <h3>{tx("暂无案件", "No matters yet")}</h3>
-          <p>{tx("点击「新建案件」开始创建您的第一个案件", "Click \"New Matter\" to create your first matter")}</p>
+          <h3>No matters yet</h3>
+          <p>Click "New Matter" to create your first matter</p>
           <button className="btn primary" onClick={onCreateMatter}>
             <Plus size={16} />
-            <span>{tx("新建案件", "New Matter")}</span>
+            <span>New Matter</span>
           </button>
         </div>
       ) : (
@@ -147,8 +143,8 @@ export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter
               >
                 <div className="matter-card-header">
                   <div className="matter-card-title-row">
-                    <h3 className="matter-card-title">{matter.name || tx("未命名案件", "Untitled Matter")}</h3>
-                    <span className={`pill ${status.color}`}>{lang === "en" ? status.en : status.zh}</span>
+                    <h3 className="matter-card-title">{matter.name || "Untitled Matter"}</h3>
+                    <span className={`pill ${status.color}`}>{status.label}</span>
                   </div>
                   <p className="matter-card-id">{matter.id}</p>
                 </div>
@@ -156,32 +152,32 @@ export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter
                 <div className="matter-card-body">
                   <div className="matter-card-meta">
                     <div className="matter-card-meta-item">
-                      <span className="matter-card-meta-label">{tx("案由", "Case Type")}</span>
-                      <span className="matter-card-meta-value">{lang === "en" ? caseType.en : caseType.zh}</span>
+                      <span className="matter-card-meta-label">Case Type</span>
+                      <span className="matter-card-meta-value">{caseType}</span>
                     </div>
                     <div className="matter-card-meta-item">
-                      <span className="matter-card-meta-label">{tx("法院", "Court")}</span>
+                      <span className="matter-card-meta-label">Court</span>
                       <span className="matter-card-meta-value">{matter.brief?.court || "-"}</span>
                     </div>
                     <div className="matter-card-meta-item">
-                      <span className="matter-card-meta-label">{tx("角色", "Role")}</span>
+                      <span className="matter-card-meta-label">Role</span>
                       <span className="matter-card-meta-value">
                         {matter.brief?.role === "defendant"
-                          ? tx("被告", "Defendant")
+                          ? "Defendant"
                           : matter.brief?.role === "plaintiff"
-                            ? tx("原告", "Plaintiff")
+                            ? "Plaintiff"
                             : "-"}
                       </span>
                     </div>
                     <div className="matter-card-meta-item">
-                      <span className="matter-card-meta-label">{tx("创建时间", "Created")}</span>
-                      <span className="matter-card-meta-value">{formatDate(matter.createdAt, lang)}</span>
+                      <span className="matter-card-meta-label">Created</span>
+                      <span className="matter-card-meta-value">{formatDate(matter.createdAt)}</span>
                     </div>
                   </div>
 
                   {matter.brief?.opponentName ? (
                     <div className="matter-card-opponent">
-                      <span className="matter-card-opponent-label">{tx("对方", "Opponent")}</span>
+                      <span className="matter-card-opponent-label">Opponent</span>
                       <span className="matter-card-opponent-value">{matter.brief.opponentName}</span>
                     </div>
                   ) : null}
@@ -192,12 +188,12 @@ export default function MatterList({ lang = "zh", onSelectMatter, onCreateMatter
                     className="btn small danger"
                     onClick={(e) => handleDelete(e, matter.id, matter.name)}
                     disabled={isDeleting}
-                    title={tx("删除", "Delete")}
+                    title="Delete"
                   >
                     {isDeleting ? <RefreshCw size={14} className="spin" /> : <Trash2 size={14} />}
                   </button>
                   <div className="matter-card-open">
-                    <span>{tx("打开", "Open")}</span>
+                    <span>Open</span>
                     <ChevronRight size={16} />
                   </div>
                 </div>

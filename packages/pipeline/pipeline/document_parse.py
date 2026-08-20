@@ -423,9 +423,9 @@ def parse_amount_hint(text: str) -> str | None:
 
 def parse_role(text: str) -> Literal["plaintiff", "defendant"] | None:
     t = text.lower()
-    if re.search(r"\b(client role|we represent|representing)\b.{0,50}\bdefendant\b", t) or re.search(r"(客户角色|我方角色|代理)\s*[:：]?\s*被告", text):
+    if re.search(r"\b(client role|we represent|representing)\b.{0,50}\bdefendant\b", t):
         return "defendant"
-    if re.search(r"\b(client role|we represent|representing)\b.{0,50}\bplaintiff\b", t) or re.search(r"(客户角色|我方角色|代理)\s*[:：]?\s*原告", text):
+    if re.search(r"\b(client role|we represent|representing)\b.{0,50}\bplaintiff\b", t):
         return "plaintiff"
     return None
 
@@ -433,8 +433,7 @@ def parse_role(text: str) -> Literal["plaintiff", "defendant"] | None:
 def parse_opponent_counsel(text: str) -> str | None:
     lines = [l.strip() for l in (text or "").splitlines() if l.strip()]
     patterns = [
-        r"^(?:opposing counsel|opponent counsel|plaintiff'?s counsel|defendant'?s counsel|outside counsel)\s*[:：\-]\s*(.+)$",
-        r"^(?:对方律所|对方代理律所|对方外部律所|对方律师)\s*[:：\-]\s*(.+)$",
+        r"^(?:opposing counsel|opponent counsel|plaintiff'?s counsel|defendant'?s counsel|outside counsel)\s*[:\-]\s*(.+)$",
     ]
     for line in lines[:250]:
         for p in patterns:
@@ -453,9 +452,8 @@ def parse_budget_usd(text: str) -> int | None:
     """
     lines = [l.strip() for l in (text or "").splitlines() if l.strip()]
     patterns = [
-        r"^(?:estimated\s+)?(?:litigation\s+)?budget.*?(?:\(?\s*(?:usd|\$)\s*\)?)\s*[:：\-]?\s*\$?\s*([0-9][0-9,]{2,})\b",
-        r"^(?:budget)\s*(?:\(?\s*(?:usd|\$)\s*\)?)\s*[:：\-]?\s*\$?\s*([0-9][0-9,]{2,})\b",
-        r"^(?:预算|费用预算).{0,20}(?:美元|usd|\$)\s*[:：\-]?\s*\$?\s*([0-9][0-9,]{2,})\b",
+        r"^(?:estimated\s+)?(?:litigation\s+)?budget.*?(?:\(?\s*(?:usd|\$)\s*\)?)\s*[:\-]?\s*\$?\s*([0-9][0-9,]{2,})\b",
+        r"^(?:budget)\s*(?:\(?\s*(?:usd|\$)\s*\)?)\s*[:\-]?\s*\$?\s*([0-9][0-9,]{2,})\b",
     ]
     for line in lines[:250]:
         for p in patterns:
@@ -476,8 +474,8 @@ def parse_budget_usd(text: str) -> int | None:
 def parse_notes(text: str) -> str | None:
     lines = [l.rstrip() for l in (text or "").splitlines()]
     for i, line in enumerate(lines[:300]):
-        if re.match(r"^\s*(notes?|备注)\s*[:：]\s*", line, flags=re.IGNORECASE):
-            v = re.sub(r"^\s*(notes?|备注)\s*[:：]\s*", "", line, flags=re.IGNORECASE).strip()
+        if re.match(r"^\s*notes?\s*:\s*", line, flags=re.IGNORECASE):
+            v = re.sub(r"^\s*notes?\s*:\s*", "", line, flags=re.IGNORECASE).strip()
             extra: list[str] = []
             for nxt in lines[i + 1 : i + 4]:
                 if not nxt.strip():

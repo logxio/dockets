@@ -1,6 +1,5 @@
 import React from "react";
 import Tooltip from "./Tooltip";
-import { useI18n } from "../lib/i18n";
 
 function Chip({ color, label }) {
   return (
@@ -20,8 +19,6 @@ function Chip({ color, label }) {
 }
 
 function GradientBar({ label }) {
-  const { lang } = useI18n();
-  const tx = (zh, en) => (lang === "en" ? en : zh);
   return (
     <div style={{ display: "grid", gap: 6 }}>
       <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 650 }}>{label}</div>
@@ -34,8 +31,8 @@ function GradientBar({ label }) {
         }}
       />
       <div className="row split" style={{ fontSize: 11, color: "var(--muted)" }}>
-        <span>{tx("低", "low")}</span>
-        <span>{tx("高", "high")}</span>
+        <span>low</span>
+        <span>high</span>
       </div>
     </div>
   );
@@ -66,21 +63,14 @@ function SizeLegend({ label, sizes }) {
 }
 
 export default function Legend({ mode }) {
-  const { lang } = useI18n();
-  const tx = (zh, en) => (lang === "en" ? en : zh);
   return (
     <div className="row split" style={{ marginBottom: 10, flexWrap: "wrap", gap: 12 }}>
       <div className="pill">
-        <span style={{ fontWeight: 700, color: "rgba(15,23,42,0.78)" }}>{tx("图例", "Legend")}</span>
+        <span style={{ fontWeight: 700, color: "rgba(15,23,42,0.78)" }}>Legend</span>
         <span style={{ marginLeft: 8, display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span>{tx("权重 = 导入的权重列", "weight = imported weight column")}</span>
+          <span>weight = imported weight column</span>
           <Tooltip
-            content={
-              tx(
-                "权重：来自导入数据的权重列（缺失则=1）。用于网络的边宽/颜色、矩阵的热力、以及摘要排序。",
-                "Weight: from the imported weight column (defaults to 1 if missing). Used for network edge width/color, matrix heat, and summary ranking.",
-              )
-            }
+            content="Weight: from the imported weight column (defaults to 1 if missing). Used for network edge width/color, matrix heat, and summary ranking."
           >
             <span
               style={{
@@ -105,18 +95,18 @@ export default function Legend({ mode }) {
 
       {mode === "network" ? (
         <div className="row" style={{ gap: 14, flexWrap: "wrap" }}>
-          <GradientBar label={tx("边颜色/宽度", "Edge color/width")} />
-          <Chip color="rgba(2,132,199,0.85)" label={tx("节点大小：总权重", "Node size: total weight")} />
+          <GradientBar label="Edge color/width" />
+          <Chip color="rgba(2,132,199,0.85)" label="Node size: total weight" />
         </div>
       ) : mode === "matrix" ? (
         <div className="row" style={{ gap: 14, flexWrap: "wrap" }}>
-          <GradientBar label={tx("格子颜色", "Cell color")} />
-          <Chip color="rgba(2,132,199,0.85)" label={tx("数值：聚合权重", "Value: aggregated weight")} />
+          <GradientBar label="Cell color" />
+          <Chip color="rgba(2,132,199,0.85)" label="Value: aggregated weight" />
         </div>
       ) : (
         <div className="row" style={{ gap: 14, flexWrap: "wrap" }}>
-          <GradientBar label={tx("点颜色：聚合权重", "Dot color: aggregated weight")} />
-          <SizeLegend label={tx("点大小：计数", "Dot size: count")} sizes={[6, 12, 18]} />
+          <GradientBar label="Dot color: aggregated weight" />
+          <SizeLegend label="Dot size: count" sizes={[6, 12, 18]} />
         </div>
       )}
     </div>

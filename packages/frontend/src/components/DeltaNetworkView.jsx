@@ -1,6 +1,5 @@
 import React from "react";
 import CytoscapeComponent from "react-cytoscapejs";
-import { useI18n } from "../lib/i18n";
 
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
@@ -22,7 +21,6 @@ function diverge(u) {
 }
 
 export default function DeltaNetworkView({ diffRows, mode, minAbsDelta, topEdges, topNodes, selectedCell, onSelectCell }) {
-  const { tx } = useI18n();
   const cyRef = React.useRef(null);
 
   const filtered = React.useMemo(() => {
@@ -162,13 +160,10 @@ export default function DeltaNetworkView({ diffRows, mode, minAbsDelta, topEdges
     <div>
       <div className="row split" style={{ marginBottom: 10, flexWrap: "wrap", gap: 10 }}>
         <div className="pill">
-          {tx(
-            "边颜色：Δ(B-A)（红增/蓝减） · 边宽：|Δ| · 点大小：Σ|Δ|",
-            "Edge color: Δ(B-A) (red up / blue down) · edge width: |Δ| · node size: Σ|Δ|",
-          )}
+          Edge color: Δ(B-A) (red up / blue down) · edge width: |Δ| · node size: Σ|Δ|
         </div>
         <button className="btn small" onClick={exportPng}>
-          {tx("导出 PNG", "Export PNG")}
+          Export PNG
         </button>
       </div>
 
@@ -201,10 +196,7 @@ export default function DeltaNetworkView({ diffRows, mode, minAbsDelta, topEdges
       </div>
 
       <div className="viz-note" style={{ marginTop: 10 }}>
-        {tx(
-          `当前显示 ${edges.length} 条差异边。建议先用左侧过滤（边数上限 / 案件类型 / 法院 / 结果）再看网络，避免过密。`,
-          `Showing ${edges.length} delta edges. Use the left filters first (Top edges / case type / court / outcome) to avoid overplotting.`,
-        )}
+        {`Showing ${edges.length} delta edges. Use the left filters first (Top edges / case type / court / outcome) to avoid overplotting.`}
       </div>
     </div>
   );

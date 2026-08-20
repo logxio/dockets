@@ -1,346 +1,93 @@
 # Legal Intelligence Workbench
 
-> **Next-Generation Litigation Analytics Platform**
-> Transforming raw litigation data into actionable legal intelligence through advanced computational methods and AI-powered insights.
+Law firm rankings computed from case outcomes instead of reputation surveys, plus the tooling to find out where those rankings are wrong.
 
-[![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat-square&logo=react)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
-[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.x-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
-[![Cytoscape.js](https://img.shields.io/badge/Cytoscape.js-3.x-F7DF1E?style=flat-square)](https://js.cytoscape.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+The model is a reimplementation of AHPI (Mahari et al., *Nature Computational Science*, 2025): treat every lawsuit as a pairwise contest between plaintiff counsel and defendant counsel, then fit firm strengths by EM alongside a per-case-type advantage for the defendant side. Run it on the paper's sample — 1,284 US federal civil cases, 1,966 firms, 2013–2018 — and the resulting order looks nothing like a Chambers table. Kirkland & Ellis lands at #878. Morrison & Foerster at #1541.
 
-> **Note:** This is a proof-of-concept developed in a rapid prototyping sprint. Intended for research demonstration and educational purposes. Not production-ready.
+Then look at the top of that table. Eight of the top ten firms appear in exactly one case; the median for the top 20 is 1.5 cases. Nothing in the estimator shrinks toward a prior, so a firm that wins its only lawsuit outscores every firm with a real track record. The fitted per-case-type parameters say the same thing from the other end: valence probabilities settle on 0.9999999 or 4e-41, and `real_property` — six cases — draws a privilege term of +3.94. That is unregularized MLE walking to the boundary on sparse strata.
+
+So the ranking is not the deliverable. The workbench is. It puts an evidence count next to every score, drills from any claim down to the case IDs behind it, and re-fits on randomized outcomes so you can see how much of a pattern survives the null.
 
 <p align="center">
-  <img src="./docs/demo1.GIF" alt="Legal Intelligence Workbench Demo - Network Visualization" width="100%">
-  <img src="./docs/demo2.GIF" alt="Legal Intelligence Workbench Demo" width="100%">
+  <img src="./docs/demo1.GIF" alt="Network view: plaintiff-defendant graph with evidence drill-down" width="100%">
+  <img src="./docs/demo2.GIF" alt="Rankings and report views" width="100%">
 </p>
 
----
+This is a proof-of-concept built in a rapid prototyping sprint, and an unofficial implementation — it is not affiliated with the paper's authors.
 
-## Overview
+## The model
 
-**Legal Intelligence Workbench** is a sophisticated litigation analytics platform that applies **computational law methodologies** to transform complex legal outcome data into evidence-backed strategic insights. The platform leverages cutting-edge web technologies, interactive data visualization, and LLM-powered analysis to deliver unprecedented transparency into law firm competitive dynamics.
-
-> **Disclaimer:** This is an unofficial, open-source implementation inspired by the outcome-based ranking algorithms described in Mahari et al. (2025). It is intended for educational and research visualization purposes only.
-
-### Core Innovation
-
-Traditional law firm rankings rely on reputation surveys and revenue metrics—proxies that weakly correlate with actual litigation performance. This platform introduces an **outcome-based ranking methodology** inspired by:
-
-- **Bradley-Terry Models** — Pairwise comparison frameworks adapted from sports analytics
-- **AHPI (Adjusted Head-to-Head Performance Index)** — Novel metrics for legal adversarial outcomes
-- **Network Analysis** — Graph-theoretic approaches to map firm rivalry ecosystems
-
-**Research Alignment:**
-- *Nature Computational Science*: Data-driven law firm rankings (treating each litigation as a plaintiff/defendant pairwise game)
-- *Federal Sentencing Reporter*: EU AI Act compliance with explainable, traceable analysis pipelines
-
----
-
-## Key Features
-
-### 1. Interactive Multi-View Visualization Engine
-
-| View | Description |
-|------|-------------|
-| **Force-Directed Network** | Dynamic graph visualization of plaintiff-defendant relationships with physics simulation |
-| **Adjacency Matrix** | Heatmap representation for dense rivalry pattern identification |
-| **Dot Plot Analytics** | Statistical distribution analysis across case types and courts |
-| **Data Table** | Sortable, filterable tabular interface with real-time search |
-
-### 2. AI-Powered Legal Intelligence
-
-- **LLM Integration** — OpenAI-compatible API with streaming response support
-- **Grounded Insights** — Prompts injected with filtered case data (CSV) to prevent hallucination
-- **Structured Output Parsing** — Extracts entities, claims, and evidence references from LLM responses
-- **Multi-Stage Reasoning Visualization** — Real-time display of AI thinking process with 6-phase progress tracking
-- **Think Block Parsing** — Separates reasoning traces from final outputs for transparency
-
-### 3. Robustness & Reproducibility Framework
-
-- **Sensitivity Analysis** — Parameter variation testing across multiple configurations
-- **Null Control Testing** — Randomization-based significance testing (p-value computation)
-- **Evidence Traceability** — Every claim linked to specific case records (RowIds)
-- **Export Capabilities** — Markdown reports and JSON data for peer review
-- **URL State Synchronization** — Reproducible analysis via shareable links
-
-### 4. Dual-Mode Interface
-
-- **J2 Neural Interface** — Immersive command-deck experience for presentations and demos
-- **Workbench Mode** — Full-featured analytical environment for deep exploration
-- **Seamless Embedding** — iframe-compatible architecture for enterprise integration
-- **Dark/Light Themes** — Professional appearance for any context
-
-### 5. Multi-Agent Analysis Architecture (J2-Style)
-
-The platform implements a **verifier-first multi-agent pipeline** that decomposes complex legal analytics into specialized, orchestrated agents:
+For firms *i* (privileged position) and *j* in a case of type *t*:
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│       Neural Command Deck (Typewriter Animation)             │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
-│  │  Agent 1    │  │  Agent 2    │  │  Agent 3    │           │
-│  │  KB Loader  │→ │  Verifier   │→ │  Synthesis  │→  ...     │
-│  │             │  │             │  │             │           │
-│  └─────────────┘  └─────────────┘  └─────────────┘           │
-│       ↓                ↓                ↓                    │
-│  Progress Bar    Progress Bar    Progress Bar                │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│  [Open Workbench →]  Deep-link with analysis state           │
-└──────────────────────────────────────────────────────────────┘
+P(i wins) = q_t · σ(λ_i + ε_t − λ_j) + (1 − q_t) · σ(λ_j − λ_i − ε_t)
 ```
 
-**Agent Pipeline:**
+- `λ` — log-strength per firm, the thing that becomes the ranking
+- `ε_t` — positional advantage for the defendant side, fitted per case type
+- `q_t` — valence: how often the favored side actually wins in type *t*
+- `σ` — logistic
 
-| Agent | Responsibility | Status |
-|-------|----------------|--------|
-| **Agent 1 · KB Loader** | Load Harvard CAP database, sync 60,000+ litigation records | ✅ Implemented |
-| **Agent 2 · Verifier** | Cross-reference precedents, verify citation integrity, hallucination check | ✅ Implemented |
-| **Agent 3 · Synthesis** | Compute Bayesian inference, generate confidence scores, neural synthesis | ✅ Implemented |
-| **Agent 4 · Workbench Handoff** | Transfer analysis state, deep-link into Explorer with pre-populated filters | ✅ Implemented |
+Fitting is EM. The E-step computes responsibilities; the M-step updates `q` in closed form, solves `ε` with `fsolve`, and updates `λ` in an inner minorization loop. Convergence needs Kendall τ > 0.999 between consecutive iterations *and* max absolute parameter change under threshold, with a floor on minimum iterations so it cannot stop on an early plateau. See [`packages/ahpi/ahpi/model.py`](packages/ahpi/ahpi/model.py).
 
-**Key Features:**
-- **Verifier-First Pipeline** — Every claim verified against Harvard CAP before presentation
-- **Evidence-Bound Claims** — All insights linked to specific case IDs
-- **Hallucination Detection** — Zero-tolerance policy with visual verification badges
-- **Confidence Scoring** — Bayesian inference with uncertainty quantification
-- **Seamless Handoff** — One-click transition from demo to full workbench with state preservation
+The mixture over `q_t` is what separates this from plain Bradley-Terry: a case type where the stronger firm wins 55% of the time and one where it wins 95% produce very different score spreads, and the model fits that rather than assuming it.
 
-This architecture ensures **explainable, auditable, and trustworthy** legal intelligence — critical for enterprise and regulatory compliance (EU AI Act).
+## Repo map
 
----
+| Path | What it is |
+|------|------------|
+| [`packages/ahpi`](packages/ahpi) | The estimator. EM fit, cross-validation, prediction accuracy. No web dependencies. |
+| [`packages/pipeline`](packages/pipeline) | ETL. Cases → pairwise interactions, Q-factor filtering, firm-name normalization, export to the formats the frontend reads. Also parses intake documents (PDF/Markdown) into a structured matter brief. |
+| [`api`](api) | FastAPI. Fit, predict, counterfactual, and the matter workflow endpoints. |
+| [`packages/frontend`](packages/frontend) | React 19 + Vite + Cytoscape. Two entry points: `workbench.html` is the analysis app, `index.html` is a scripted demo deck that hands off into it. |
 
-## Technical Architecture
+## Running it
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Legal Intelligence Workbench                │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
-│  │      Demo   │  │  Workbench  │  │     Shared Components   │  │
-│  │  Interface  │◄─┤    Core     │◄─┤  • InsightsPanel        │  │
-│  │             │  │             │  │  • NetworkView          │  │
-│  └──────┬──────┘  └──────┬──────┘  │  • MatrixView           │  │
-│         │                │         │  • DotPlotView          │  │
-│         ▼                ▼         │  • TableView            │  │
-│  ┌─────────────────────────────┐   │  • LlmPanel             │  │
-│  │      PostMessage Bridge     │   └─────────────────────────┘  │
-│  │   (iframe ↔ parent sync)    │                                │
-│  └─────────────────────────────┘                                │
-├─────────────────────────────────────────────────────────────────┤
-│                        Data Layer                               │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
-│  │   Filters   │  │  Analytics  │  │      LLM Client         │  │
-│  │   Engine    │  │   Engine    │  │  • OpenAI Compatible    │  │
-│  │             │  │  • Ranking  │  │  • Streaming Support    │  │
-│  │  • URL Sync │  │  • Network  │  │  • Mock Fallback        │  │
-│  │  • Presets  │  │  • Stats    │  │  • Think Block Parser   │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Technology Stack
-
-| Layer | Technologies |
-|-------|--------------|
-| **Frontend Framework** | React 19.2, Vite 7, ES2024+ |
-| **Network Visualization** | Cytoscape.js 3, Recharts 3, Custom SVG Components |
-| **Styling** | TailwindCSS 4, CSS Custom Properties, Dark/Light Themes |
-| **State Management** | React Hooks, URL State Synchronization |
-| **AI Integration** | OpenAI-compatible API, Streaming Responses, Mock Fallback |
-| **Build & Deploy** | Vite, ESBuild, Static Export |
-| **Internationalization** | Runtime EN/ZH switching with `useI18n` hook |
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+ (LTS recommended)
-- pnpm 8+ (recommended) or npm
-
-### Installation
+The workbench alone, on the bundled sample data — no backend needed:
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/legal-intelligence-workbench.git
-cd legal-intelligence-workbench
-
-# Install dependencies
-pnpm install
-
-# Start development server
-pnpm dev
+pnpm -C packages/frontend install && pnpm -C packages/frontend dev
 ```
 
-### Demo Mode
+`http://127.0.0.1:5173/workbench.html` for the analysis app, `/` for the demo deck.
 
-For stable presentations with pre-loaded sample data:
+The matter workflow (document intake, firm recommendations, decision pack) needs the API:
 
 ```bash
-pnpm dev:demo
+pip install -e packages/ahpi -e packages/pipeline -e api
+uvicorn app.main:app --app-dir api --port 8001
 ```
 
-Or append `?demo=1` to any URL.
+The Vite dev server proxies `/api` to port 8001, falling back to 8000. Set `VITE_API_PROXY_TARGET` to override.
 
-### Environment Configuration
-
-Create a `.env.local` file for LLM integration (optional):
-
-```env
-VITE_LLM_API_URL=https://api.openai.com/v1
-```
-
-> **Note:** If `VITE_LLM_API_URL` is empty or the API fails, the system automatically falls back to **Demo Mock output** with realistic thinking traces and structured claims.
-
-### Build for Production
+Whole stack behind nginx:
 
 ```bash
-pnpm build
-pnpm preview
+docker compose up --build
 ```
 
----
+### LLM panel
 
-## Data Input
+The report view can send filtered rows to an OpenAI-compatible endpoint and require every claim to cite a RowId. Point `VITE_LLM_API_URL` at your endpoint; leave it empty and it falls back to a deterministic mock that reads the same injected CSV, so the loop is demonstrable without a key. `VITE_LLM_FORCE_MOCK=true` pins mock mode.
 
-### Supported Formats
-- CSV (comma-separated)
-- TSV (tab-separated)
+## The dataset
 
-### Field Mapping
+`packages/frontend/public/sample/` ships the Fig. 2 extract from the paper: 14,797 interaction rows over 1,284 cases. Bring your own CSV/TSV through the import panel — the column mapper needs a plaintiff firm and a defendant firm, and will use case type, court, outcome, and weight if present.
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `Plaintiff firm` | Yes | Law firm representing plaintiff |
-| `Defendant firm` | Yes | Law firm representing defendant |
-| `Case type` | No | Litigation category (e.g., Patent, Antitrust) |
-| `Court` | No | Jurisdiction or court name |
-| `Outcome` | No | Case result for stratified analysis |
-| `Weight` | No | Edge weight for visualization (defaults to 1) |
+Two things to know before reading anything off the sample. Outcomes are 79.6% plaintiff wins at the case level, so a global fit is largely fitting one class; the QC panel flags this and suggests stratifying. And the `Court` column is empty for every row, so the court filter has nothing to work with — court-level stratification needs a different extract.
 
-### Sample Data
+## Known limits
 
-Built-in sample datasets available via the UI:
-- **Quick Demo** — `mahari_lawsuits_example.csv`
-- **Fig.2 Source** — `mahari_fig2_moesm4_interactions.csv`
+- No shrinkage or regularization in the fit. Firms with one or two cases dominate the top of the ranking. Filter by evidence count before drawing conclusions, or add a Beta prior on `q` and an L2 penalty on `λ`.
+- Settlements are unobserved. Every case in the data has a winner, which is not how litigation ends most of the time.
+- The win rate the Matters view shows for a recommended firm is not trustworthy. It is derived from the sample's `PredDefWinProba` column, which scores AUC 0.455 against the actual winner — below chance. Details and the fix in [`packages/pipeline/DESIGN.md`](packages/pipeline/DESIGN.md).
+- `pnpm build` emits a ~996 kB workbench chunk. Cytoscape and Recharts are the bulk of it. It has not been split.
+- Matter state is in-process on the API. Restart and it is gone.
 
----
+## Reference
 
-## Citation Verification System
-
-Every analytical claim maintains full evidence traceability:
-
-- **RowId Linking** — Click any insight to reveal source records
-- **Visual Highlighting** — Selected edges highlight across all views simultaneously
-- **Export Chain** — JSON exports include complete evidence references
-- **Audit Trail** — Reproducible via URL state
-
----
-
-## Research Applications
-
-### Empirical Legal Studies
-- Quantify litigation outcome patterns across jurisdictions
-- Identify systematic advantages by firm size, specialization
-- Track temporal evolution of competitive dynamics
-
-### Legal Market Intelligence
-- Evidence-based law firm selection for corporate counsel
-- Competitive benchmarking for firm strategy teams
-- M&A due diligence on litigation track records
-
-### Academic Research
-- Reproducible methodology with full parameter transparency
-- Statistical robustness testing built-in
-- Export formats compatible with R/Python analysis pipelines
-
----
-
-## Project Structure
-
-```
-src/
-├── components/           # React UI components
-│   ├── NetworkView.jsx   # Force-directed graph (D3.js)
-│   ├── MatrixView.jsx    # Adjacency heatmap
-│   ├── DotPlotView.jsx   # Statistical dot plots
-│   ├── TableView.jsx     # Filterable data table
-│   ├── InsightsPanel.jsx # AI insights & robustness reports
-│   ├── LlmPanel.jsx      # LLM configuration & testing
-│   └── ThinkBlock.jsx    # AI reasoning visualization
-├── lib/                  # Core utilities
-│   ├── analytics.js      # Ranking algorithms
-│   ├── llmClient.js      # OpenAI-compatible API client
-│   ├── llmThink.js       # Think block parser
-│   ├── robustness.js     # Statistical testing
-│   ├── i18n.js           # Internationalization
-│   └── filters.js        # URL state management
-├── j2/                   # Demo interface
-│   └── main.js           # Neural command deck
-├── styles.css            # Global styles & themes
-└── App.jsx               # Main application shell
-```
-
----
-
-## Performance Characteristics
-
-- **Scalability** — Handles 10,000+ litigation records smoothly
-- **Responsive Design** — Optimized for desktop to tablet viewports
-- **Lazy Loading** — Code-split visualization components
-- **Memoization** — Strategic `useMemo` for expensive computations
-
----
-
-## Contributing
-
-We welcome contributions from the computational law and legal tech communities.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## Engineering Methodology
-
-This project was developed using an **AI-Native Workflow** (Cursor + Local LLMs) within a **48-hour sprint**.
-
-| Aspect | Approach |
-|--------|----------|
-| **Architecture & Logic** | Human-designed to align with computational law principles |
-| **Boilerplate & Visualization** | Accelerated by local AI agents for rapid prototyping |
-| **Verification** | Manual code review and security audit for enterprise-grade reliability |
-
-> *This demonstrates how modern AI-augmented development can compress months of work into days while maintaining code quality, architectural coherence, and data privacy.*
-
----
+Mahari, R., et al. (2025). *Data-Driven Law Firm Rankings to Reduce Information Asymmetry in Legal Disputes.* Nature Computational Science. [arXiv:2408.16863](https://arxiv.org/abs/2408.16863v2)
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) for details.
-
----
-
-## Acknowledgments
-
-This project draws inspiration from leading computational law research:
-
-- **MIT Computational Law Report**
-- **Harvard Law School Center on the Legal Profession**
-- **Stanford CodeX - The Stanford Center for Legal Informatics**
-
----
-
-<p align="center">
-  <strong>Legal Intelligence Workbench</strong><br>
-  <em>Where Data Meets Legal Strategy</em>
-</p>
+MIT. See [LICENSE](LICENSE).

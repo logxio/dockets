@@ -21,7 +21,6 @@ import FitView from "./components/FitView";
 import AssistantDrawer from "./components/AssistantDrawer";
 import CommandPalette from "./components/CommandPalette";
 import StoryMode from "./components/StoryMode";
-import LangToggle from "./components/LangToggle";
 import ThemeToggle from "./components/ThemeToggle";
 import MatterList from "./components/MatterList";
 import CreateMatterModal from "./components/CreateMatterModal";
@@ -32,7 +31,7 @@ import { buildCompareInsights, buildSingleInsights } from "./lib/intelligence";
 import { computeNullControl, computeRobustness } from "./lib/robustness";
 import { isDemoMode } from "./lib/demoMode";
 import { normalizeLabel, parseDelimitedText } from "./lib/parse";
-import { createT, detectLang, I18nProvider } from "./lib/i18n";
+import { I18nProvider, t } from "./lib/i18n";
 import { applyTheme, detectTheme } from "./lib/theme";
 import { getPreset } from "./lib/presets";
 
@@ -217,10 +216,7 @@ export default function App() {
   const initViewCandidate = initial.view ?? "network";
   const init = React.useMemo(() => normalizeInitialView(initViewCandidate), [initViewCandidate]);
   const demoMode = React.useMemo(() => isDemoMode(window.location.search), []);
-  const [lang, setLang] = React.useState(() => detectLang({ search: window.location.search }));
   const [theme, setTheme] = React.useState(() => detectTheme({ search: window.location.search }));
-  const t = React.useMemo(() => createT(lang), [lang]);
-  const tx = React.useCallback((zh, en) => (lang === "en" ? en : zh), [lang]);
   const [view, setView] = React.useState(init.view);
   const [matrixMode, setMatrixMode] = React.useState(init.matrixMode); // heat | dot
   const [lastAdvancedView, setLastAdvancedView] = React.useState(
@@ -329,27 +325,6 @@ export default function App() {
 
   React.useEffect(() => {
     try {
-      window.localStorage.setItem("cldemo_lang", String(lang));
-    } catch {
-      // ignore
-    }
-    try {
-      document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
-    } catch {
-      // ignore
-    }
-    // Notify parent (J2) of language change
-    try {
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: "cldemo:lang", lang }, window.location.origin);
-      }
-    } catch {
-      // ignore cross-origin errors
-    }
-  }, [lang]);
-
-  React.useEffect(() => {
-    try {
       window.localStorage.setItem("cldemo_theme", String(theme));
     } catch {
       // ignore
@@ -365,7 +340,7 @@ export default function App() {
     }
   }, [theme]);
 
-  // Listen for theme/lang changes from parent (J2)
+  // Listen for theme changes from parent (J2)
   React.useEffect(() => {
     const handler = (evt) => {
       try {
@@ -378,19 +353,13 @@ export default function App() {
             setTheme(next);
           }
         }
-        if (data.type === "cldemo:lang") {
-          const next = String(data.lang || "").trim().toLowerCase();
-          if ((next === "zh" || next === "en") && next !== lang) {
-            setLang(next);
-          }
-        }
       } catch {
         // ignore
       }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [theme, lang]);
+  }, [theme]);
 
   React.useEffect(() => {
     const t = topTabFromView(view);
@@ -439,15 +408,15 @@ export default function App() {
   }, []);
 
   React.useEffect(() => {
-    const qs = writeQueryState({ view, filters, demo: demoMode, lang, theme });
+    const qs = writeQueryState({ view, filters, demo: demoMode, theme });
     window.history.replaceState({}, "", qs || "?");
-  }, [view, filters, demoMode, lang, theme]);
+  }, [view, filters, demoMode, theme]);
 
   const loadRankings = React.useCallback(async () => {
     try {
       setRankingsError(null);
       const res = await fetch("/sample/mahari_exp_scores.csv");
-      if (!res.ok) throw new Error(lang === "en" ? "Rankings file not found: /sample/mahari_exp_scores.csv" : "未找到 rankings 文件：/sample/mahari_exp_scores.csv");
+      if (!res.ok) throw new Error("Rankings file not found: /sample/mahari_exp_scores.csv");
       const parsed = parseDelimitedText(await res.text());
       const rows = (parsed ?? [])
         .map((r) => {
@@ -461,9 +430,9 @@ export default function App() {
       setRankings(rows);
     } catch (e) {
       setRankings(null);
-      setRankingsError(e instanceof Error ? e.message : lang === "en" ? "Failed to load rankings" : "Rankings 加载失败");
+      setRankingsError(e instanceof Error ? e.message : "Failed to load rankings");
     }
-  }, [lang]);
+  }, []);
 
   React.useEffect(() => {
     loadRankings();
@@ -601,8 +570,8 @@ export default function App() {
 
   const singleInsights = React.useMemo(() => {
     if (!filtered || !mapping) return null;
-    return buildSingleInsights({ events: filtered, mapping, filters, lang });
-  }, [filtered, mapping, filters, lang]);
+    return buildSingleInsights({ events: filtered, mapping, filters });
+  }, [filtered, mapping, filters]);
 
   const applyFilterPatch = React.useCallback((patch) => {
     if (!patch || typeof patch !== "object") return;
@@ -641,7 +610,7 @@ export default function App() {
         : null;
       if (view === "compare") {
         if (!filteredA || !filteredB) {
-          alert(lang === "en" ? "Import Dataset A and Dataset B in Compare first." : "请先在 Compare 模式导入两份数据（A 与 B）");
+          alert("Import Dataset A and Dataset B in Compare first.");
           return;
         }
         const diff = computePairDiff(aggregatePairs(filteredA), aggregatePairs(filteredB), 1e-6);
@@ -654,7 +623,6 @@ export default function App() {
           annDiffRows,
           fluxDiffRows,
           filters,
-          lang,
         });
         const html = generateCompareReport({
           fileA: cmpA.fileName,
@@ -665,14 +633,13 @@ export default function App() {
           diffRows: diff,
           insights,
           rankingsTop: sortedRankings,
-          lang,
         });
         downloadHtml("mahari-law-firm-rankings-compare-report.html", html);
         return;
       }
 
       if (!filtered || !selectionSummary) {
-        alert(lang === "en" ? "Import data and start analysis first." : "请先导入数据并开始分析");
+        alert("Import data and start analysis first.");
         return;
       }
       const rankingsForTopNodes = (() => {
@@ -690,9 +657,9 @@ export default function App() {
         return out;
       })();
       const robustness = events
-        ? computeRobustness({ eventsAll: events, baseFilters: filters, topK: 10, lang })
+        ? computeRobustness({ eventsAll: events, baseFilters: filters, topK: 10 })
         : null;
-      const nullControl = events ? computeNullControl({ eventsAll: events, baseFilters: filters, n: 60, seed: 42, lang }) : null;
+      const nullControl = events ? computeNullControl({ eventsAll: events, baseFilters: filters, n: 60, seed: 42 }) : null;
       const html = generateSingleReport({
         fileName: "single",
         filters,
@@ -704,7 +671,6 @@ export default function App() {
         nullControl,
         rankingsTop: sortedRankings,
         rankingsForTopNodes,
-        lang,
       });
       downloadHtml("mahari-law-firm-rankings-report.html", html);
     } catch {
@@ -729,49 +695,48 @@ export default function App() {
 
   const exportViewPng = React.useCallback(() => {
     if (view !== "network") {
-      showToast(lang === "en" ? "Switch to Network view to export PNG." : "请切换到 Network 视图再导出 PNG。");
+      showToast("Switch to Network view to export PNG.");
       return;
     }
     if (!networkApiReady) {
-      showToast(lang === "en" ? "Network view not ready yet." : "网络视图尚未就绪。");
+      showToast("Network view not ready yet.");
       return;
     }
     try {
       networkApiRef.current?.exportPng?.();
     } catch {
-      showToast(lang === "en" ? "Export failed." : "导出失败。");
+      showToast("Export failed.");
     }
-  }, [view, networkApiReady, showToast, lang]);
+  }, [view, networkApiReady, showToast]);
 
   const exportRankingsTsv = React.useCallback(() => {
     const rows = Array.isArray(rankings) ? [...rankings] : [];
     if (!rows.length) {
-      showToast(lang === "en" ? "Rankings not loaded yet." : "排名尚未加载。");
+      showToast("Rankings not loaded yet.");
       return;
     }
     rows.sort((a, b) => (num(a.Rank) ?? Infinity) - (num(b.Rank) ?? Infinity));
     downloadTsv("mahari_rankings.tsv", rows, ["Rank", "Firm", "Score", "ExpScore"]);
-    showToast(lang === "en" ? "Rankings exported (TSV)." : "已导出排名表（TSV）。");
-  }, [rankings, showToast, lang]);
+    showToast("Rankings exported (TSV).");
+  }, [rankings, showToast]);
 
   const exportRankingsHtml = React.useCallback(() => {
     const rows = Array.isArray(rankings) ? [...rankings] : [];
     if (!rows.length) {
-      showToast(lang === "en" ? "Rankings not loaded yet." : "排名尚未加载。");
+      showToast("Rankings not loaded yet.");
       return;
     }
     rows.sort((a, b) => (num(a.Rank) ?? Infinity) - (num(b.Rank) ?? Infinity));
     const html = generateRankingsReport({
-      title: lang === "en" ? "Law firm rankings report" : "律所排名报告",
+      title: "Law firm rankings report",
       query: "",
       onlyPresent: false,
       presentFirmsCount: presentFirms?.size ?? 0,
       rows,
-      lang,
     });
     downloadHtml("mahari-law-firm-rankings-rankings-report.html", html);
-    showToast(lang === "en" ? "Rankings report exported (HTML)." : "已导出排名报告（HTML）。");
-  }, [rankings, showToast, lang, presentFirms]);
+    showToast("Rankings report exported (HTML).");
+  }, [rankings, showToast, presentFirms]);
   const topTab = topTabFromView(view);
 
   const goTopTab = (k) => {
@@ -848,7 +813,7 @@ export default function App() {
       const cfg = getPreset(preset);
       const file = cfg.file;
       const res = await fetch(file);
-      if (!res.ok) throw new Error(lang === "en" ? `Failed to load preset: ${file}` : `加载示例失败：${file}`);
+      if (!res.ok) throw new Error(`Failed to load preset: ${file}`);
       const rawRows = parseDelimitedText(await res.text());
       const columnMapping = cfg.mapping;
       setError(null);
@@ -862,7 +827,7 @@ export default function App() {
       setDatasetMode("full");
       setSmoothStats(null);
       setDatasetInfo({ name: cfg.name || preset, source: `preset:${preset}`, rows: rawRows?.length ?? 0 });
-      setImportWarnings(summarizeWarnings(report, columnMapping, lang));
+      setImportWarnings(summarizeWarnings(report, columnMapping));
       const baseFilters = { ...defaultFilters(), ...(initial.filters ?? {}) };
       setFilters((prev) => {
         const keepFocus = prev.focusCell ? { focusCell: prev.focusCell, focusMode: prev.focusMode } : {};
@@ -871,7 +836,7 @@ export default function App() {
       setView("network");
       return { events: ev, selectionSummary: computeSelectionSummary(filterEvents(ev, baseFilters)) };
     },
-    [initial.filters, lang],
+    [initial.filters],
   );
 
   // Showcase mode: auto-load a preset so the Workbench "just works" without clicking Import.
@@ -971,9 +936,9 @@ export default function App() {
 
   const consolePresets = React.useMemo(
     () => [
-      { value: "top100", zh: "Top 100（推荐）", en: "Top 100 (recommended)" },
-      { value: "top50", zh: "Top 50（最快）", en: "Top 50 (fastest)" },
-      { value: "fig2", zh: "Fig.2（全量）", en: "Fig.2 (full)" },
+      { value: "top100", label: "Top 100 (recommended)" },
+      { value: "top50", label: "Top 50 (fastest)" },
+      { value: "fig2", label: "Fig.2 (full)" },
     ],
     [],
   );
@@ -1012,19 +977,17 @@ export default function App() {
     setSmoothStats(stats);
     setFilters((prev) => ({ ...prev, topEdges: undefined }));
     showToast(
-      lang === "en"
-        ? `Smooth mode applied: top ${stats.keptFirms} firms, ${stats.keptEdges} edges.`
-        : `已启用丝滑模式：Top ${stats.keptFirms} 律所、${stats.keptEdges} 条边。`,
+      `Smooth mode applied: top ${stats.keptFirms} firms, ${stats.keptEdges} edges.`,
     );
-  }, [eventsAll, perfLimits.maxFirms, perfLimits.maxEdges, showToast, lang]);
+  }, [eventsAll, perfLimits.maxFirms, perfLimits.maxEdges, showToast]);
 
   const applyFullMode = React.useCallback(() => {
     if (!eventsAll?.length) return;
     setEvents(eventsAll);
     setDatasetMode("full");
     setSmoothStats(null);
-    showToast(lang === "en" ? "Switched back to full dataset." : "已切回全量数据。");
-  }, [eventsAll, showToast, lang]);
+    showToast("Switched back to full dataset.");
+  }, [eventsAll, showToast]);
 
   React.useEffect(() => {
     if (!pipelineOpen) return;
@@ -1089,7 +1052,7 @@ export default function App() {
   }, [demoMode, loadPreset, rankings, selectPair, openEvidence]);
 
   return (
-    <I18nProvider lang={lang} setLang={setLang}>
+    <I18nProvider>
       <div className="app">
       <div className="header">
         <div className="header-inner">
@@ -1101,7 +1064,7 @@ export default function App() {
           <div className="header-actions">
             <div className="tabs" role="tablist" aria-label="views">
               {[
-                ["matters", tx("案件", "Matters")],
+                ["matters", "Matters"],
                 ["explore", t("tabs.explore")],
                 ["rankings", t("tabs.rankings")],
                 ["report", t("tabs.report")],
@@ -1114,7 +1077,6 @@ export default function App() {
             </div>
 	            <div className="header-tools" aria-label="tools">
 	              <div className="toggle-stack">
-	                <LangToggle lang={lang} setLang={setLang} />
 	                <ThemeToggle theme={theme} setTheme={setTheme} />
 	              </div>
                 {isEmbedded ? (
@@ -1122,9 +1084,9 @@ export default function App() {
                     className={`btn header-btn ${pipelineOpen ? "primary" : ""}`}
                     type="button"
                     onClick={() => setPipelineOpen((v) => !v)}
-                    title={tx("数据导入 / 性能优化 / 过滤聚焦", "Data / Performance / Filters")}
+                    title="Data / Performance / Filters"
                   >
-                    {tx("控制台", "Console")}
+                    Console
                   </button>
                 ) : null}
 	              <button className="btn header-btn header-btn-cmd" onClick={() => setPaletteOpen(true)} title="⌘K / Ctrl+K">
@@ -1159,14 +1121,11 @@ export default function App() {
             <div className="left">
               <div className="pipeline">
                 <div className="pipeline-head">
-                  <div className="pipeline-title">{tx("控制台", "Console")}</div>
+                  <div className="pipeline-title">Console</div>
                   <div className="pipeline-sub">
                     {datasetInfo?.name
-                      ? tx(
-                          `当前数据：${datasetInfo.name} · ${(datasetInfo.rows ?? 0).toLocaleString()} 行`,
-                          `Dataset: ${datasetInfo.name} · ${(datasetInfo.rows ?? 0).toLocaleString()} rows`,
-                        )
-                      : tx("已自动加载示例数据，可直接演示。", "Sample data is preloaded — ready to demo.")}
+                      ? `Dataset: ${datasetInfo.name} · ${(datasetInfo.rows ?? 0).toLocaleString()} rows`
+                      : "Sample data is preloaded — ready to demo."}
                   </div>
                 </div>
 
@@ -1174,14 +1133,14 @@ export default function App() {
                   <div className={`pipeline-badge ${view === "compare" ? (cmpA.events && cmpB.events ? "done" : "") : events ? "done" : ""}`}>1</div>
                   <div className="pipeline-body">
                     <div className="pipeline-stage">
-                      <div className="pipeline-stage-name">{tx("导入数据", "Data")}</div>
-                      <div className="pipeline-stage-meta">{tx("上传 CSV/TSV，系统自动规范化", "Upload CSV/TSV; auto-normalize")}</div>
+                      <div className="pipeline-stage-name">Data</div>
+                      <div className="pipeline-stage-meta">Upload CSV/TSV; auto-normalize</div>
                     </div>
                     <div className="card pad">
                       {view === "compare" ? (
                         <div style={{ display: "grid", gap: 14 }}>
                           <div>
-                            <div className="pill">{tx("数据集 A", "Dataset A")}</div>
+                            <div className="pill">Dataset A</div>
                             <div style={{ height: 8 }} />
                             <FileImport
                               onLoaded={({ rawRows, columnMapping, fileName }) => {
@@ -1192,7 +1151,7 @@ export default function App() {
                                   rows: rawRows,
                                   mapping: columnMapping,
                                   events: ev,
-                                  warnings: summarizeWarnings(report, columnMapping, lang),
+                                  warnings: summarizeWarnings(report, columnMapping),
                                 });
                               }}
                               onError={(msg) => setError(msg)}
@@ -1209,7 +1168,7 @@ export default function App() {
                             ) : null}
                           </div>
                           <div>
-                            <div className="pill">{tx("数据集 B", "Dataset B")}</div>
+                            <div className="pill">Dataset B</div>
                             <div style={{ height: 8 }} />
                             <FileImport
                               onLoaded={({ rawRows, columnMapping, fileName }) => {
@@ -1220,7 +1179,7 @@ export default function App() {
                                   rows: rawRows,
                                   mapping: columnMapping,
                                   events: ev,
-                                  warnings: summarizeWarnings(report, columnMapping, lang),
+                                  warnings: summarizeWarnings(report, columnMapping),
                                 });
                               }}
                               onError={(msg) => setError(msg)}
@@ -1242,9 +1201,9 @@ export default function App() {
                           <div className="row split">
                             <div>
                               <div className="card-title">{t("sections.import")}</div>
-                              <div className="card-sub">{tx("默认示例数据已就绪；需要时再替换。", "Sample data is ready; replace only if needed.")}</div>
+                              <div className="card-sub">Sample data is ready; replace only if needed.</div>
                             </div>
-                            <span className="pill success">{tx("已就绪", "Ready")}</span>
+                            <span className="pill success">Ready</span>
                           </div>
                           <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
                             <div className="notice">
@@ -1252,19 +1211,19 @@ export default function App() {
                                 <div>
                                   <div style={{ fontWeight: 850 }}>
                                     {datasetInfo?.name
-                                      ? tx(`已注入：${datasetInfo.name}`, `Injected: ${datasetInfo.name}`)
-                                      : tx("正在加载示例数据…", "Loading sample dataset…")}
+                                      ? `Injected: ${datasetInfo.name}`
+                                      : "Loading sample dataset…"}
                                   </div>
                                   <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                                    {datasetInfo?.rows ? `${datasetInfo.rows.toLocaleString()} ${tx("行", "rows")}` : tx("无需操作，直接开始探索即可。", "No action needed — start exploring.")}
+                                    {datasetInfo?.rows ? `${datasetInfo.rows.toLocaleString()} ${"rows"}` : "No action needed — start exploring."}
                                   </div>
                                 </div>
-                                <span className={`pill ${datasetInfo?.name ? "success" : ""}`}>{datasetInfo?.source?.startsWith?.("preset:") ? tx("预设", "Preset") : tx("示例", "Sample")}</span>
+                                <span className={`pill ${datasetInfo?.name ? "success" : ""}`}>{datasetInfo?.source?.startsWith?.("preset:") ? "Preset" : "Sample"}</span>
                               </div>
                             </div>
 
                             <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                              <div className="label">{tx("切换预设", "Switch preset")}</div>
+                              <div className="label">Switch preset</div>
                               <select
                                 className="select"
                                 value={consolePreset}
@@ -1276,14 +1235,14 @@ export default function App() {
                               >
                                 {consolePresets.map((p) => (
                                   <option key={p.value} value={p.value}>
-                                    {lang === "en" ? p.en : p.zh}
+                                    {p.label}
                                   </option>
                                 ))}
                               </select>
                             </div>
                           </div>
                           <details className="details-block" style={{ marginTop: 10 }}>
-                            <summary className="details-summary">{tx("替换数据 / 查看映射", "Replace dataset / mapping")}</summary>
+                            <summary className="details-summary">Replace dataset / mapping</summary>
                             <div style={{ height: 10 }} />
                             <FileImport
                               onLoaded={({ rawRows, columnMapping, fileName }) => {
@@ -1297,8 +1256,8 @@ export default function App() {
                                 setEvents(ev);
                                 setDatasetMode("full");
                                 setSmoothStats(null);
-                                setDatasetInfo({ name: fileName || tx("已导入数据", "Imported dataset"), source: "import", rows: rawRows?.length ?? 0 });
-                                setImportWarnings(summarizeWarnings(report, columnMapping, lang));
+                                setDatasetInfo({ name: fileName || "Imported dataset", source: "import", rows: rawRows?.length ?? 0 });
+                                setImportWarnings(summarizeWarnings(report, columnMapping));
                                 setFilters((prev) => {
                                   const base = { ...defaultFilters(), ...(initial.filters ?? {}) };
                                   return { ...base, includeSelfLoops: prev.includeSelfLoops };
@@ -1334,51 +1293,48 @@ export default function App() {
                   <div className={`pipeline-badge ${datasetMode === "smooth" ? "done" : ""}`}>2</div>
                   <div className="pipeline-body">
                     <div className="pipeline-stage">
-                      <div className="pipeline-stage-name">{tx("性能优化", "Performance")}</div>
-                      <div className="pipeline-stage-meta">{tx("大数据自动建议“丝滑模式”", "Auto-suggest smoothing for large data")}</div>
+                      <div className="pipeline-stage-name">Performance</div>
+                      <div className="pipeline-stage-meta">Auto-suggest smoothing for large data</div>
                     </div>
                     <div className="card pad">
                       {datasetProfile ? (
                         <>
                           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                             <span className="pill">
-                              {datasetProfile.rows.toLocaleString()} {tx("行", "rows")}
+                              {datasetProfile.rows.toLocaleString()} rows
                             </span>
                             <span className="pill">
-                              {datasetProfile.firms.toLocaleString()} {tx("律所", "firms")}
+                              {datasetProfile.firms.toLocaleString()} firms
                             </span>
                             <span className="pill">
-                              {datasetProfile.edges.toLocaleString()} {tx("对抗边", "edges")}
+                              {datasetProfile.edges.toLocaleString()} edges
                             </span>
-                            {datasetMode === "smooth" ? <span className="pill success">{tx("已优化", "Optimized")}</span> : null}
-                            {perfNeedsSmoothing && datasetMode !== "smooth" ? <span className="pill warn">{tx("建议优化", "Optimize recommended")}</span> : null}
+                            {datasetMode === "smooth" ? <span className="pill success">Optimized</span> : null}
+                            {perfNeedsSmoothing && datasetMode !== "smooth" ? <span className="pill warn">Optimize recommended</span> : null}
                           </div>
                           <div className="row" style={{ marginTop: 10, gap: 8, flexWrap: "wrap" }}>
                             {datasetMode !== "smooth" ? (
                               <button className="btn small primary" type="button" onClick={applySmoothMode} disabled={!eventsAll?.length}>
-                                {tx("一键优化（推荐）", "Optimize (recommended)")}
+                                Optimize (recommended)
                               </button>
                             ) : (
                               <button className="btn small" type="button" onClick={applyFullMode} disabled={!eventsAll?.length}>
-                                {tx("切回全量", "Use full")}
+                                Use full
                               </button>
                             )}
                             {smoothStats ? (
                               <span className="muted" style={{ fontSize: 12 }}>
-                                {tx("保留", "Kept")} {smoothStats.keptFirms.toLocaleString()} {tx("律所", "firms")} · {smoothStats.keptEdges.toLocaleString()} {tx("边", "edges")}
+                                Kept {smoothStats.keptFirms.toLocaleString()} firms · {smoothStats.keptEdges.toLocaleString()} edges
                               </span>
                             ) : null}
                           </div>
                           <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-                            {tx(
-                              `预算：≤${perfLimits.maxFirms} 律所、≤${perfLimits.maxEdges} 条边。`,
-                              `Budget: ≤${perfLimits.maxFirms} firms, ≤${perfLimits.maxEdges} edges.`,
-                            )}
+                            {`Budget: ≤${perfLimits.maxFirms} firms, ≤${perfLimits.maxEdges} edges.`}
                           </div>
                         </>
                       ) : (
                         <div className="muted" style={{ fontSize: 12 }}>
-                          {tx("示例数据已就绪；导入自定义数据后会自动评估性能。", "Sample data is ready; import custom data to evaluate performance automatically.")}
+                          Sample data is ready; import custom data to evaluate performance automatically.
                         </div>
                       )}
                     </div>
@@ -1389,14 +1345,14 @@ export default function App() {
                   <div className={`pipeline-badge ${events ? "done" : ""}`}>3</div>
                   <div className="pipeline-body">
                     <div className="pipeline-stage">
-                      <div className="pipeline-stage-name">{tx("过滤与聚焦", "Filters")}</div>
-                      <div className="pipeline-stage-meta">{tx("更快获得清晰结论", "Get to a clear conclusion faster")}</div>
+                      <div className="pipeline-stage-name">Filters</div>
+                      <div className="pipeline-stage-meta">Get to a clear conclusion faster</div>
                     </div>
                     <div className="card pad">
                       <div style={{ display: "grid", gap: 10, opacity: consoleFiltersDisabled ? 0.6 : 1, pointerEvents: consoleFiltersDisabled ? "none" : "auto" }}>
                         <div style={{ display: "grid", gap: 10 }}>
                           <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                            <div className="label">{tx("聚焦律所", "Focus firm")}</div>
+                            <div className="label">Focus firm</div>
                             <select
                               className="select"
                               value={filters.focusCell ?? ""}
@@ -1406,7 +1362,7 @@ export default function App() {
                                 else setFilters({ ...filters, focusCell: v, focusMode: filters.focusMode || "any" });
                               }}
                             >
-                              <option value="">{tx("（全部）", "(All)")}</option>
+                              <option value="">(All)</option>
                               {quickOptions.focusFirms.map((f) => (
                                 <option key={f} value={f}>
                                   {f}
@@ -1417,27 +1373,27 @@ export default function App() {
 
                           {filters.focusCell ? (
                             <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                              <div className="label">{tx("聚焦模式", "Focus mode")}</div>
+                              <div className="label">Focus mode</div>
                               <select
                                 className="select"
                                 value={filters.focusMode ?? "any"}
                                 onChange={(e) => setFilters({ ...filters, focusMode: e.target.value })}
                               >
-                                <option value="any">{tx("任意", "Any")}</option>
-                                <option value="outgoing">{tx("作为原告", "As plaintiff")}</option>
-                                <option value="incoming">{tx("作为被告", "As defendant")}</option>
+                                <option value="any">Any</option>
+                                <option value="outgoing">As plaintiff</option>
+                                <option value="incoming">As defendant</option>
                               </select>
                             </div>
                           ) : null}
 
                           <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                            <div className="label">{tx("案件类型", "Case type")}</div>
+                            <div className="label">Case type</div>
                             <select
                               className="select"
                               value={(filters.metaboliteQuery ?? "").trim()}
                               onChange={(e) => setFilters({ ...filters, metaboliteQuery: e.target.value })}
                             >
-                              <option value="">{tx("（全部）", "(All)")}</option>
+                              <option value="">(All)</option>
                               {quickOptions.caseTypes.map((v) => (
                                 <option key={v} value={v}>
                                   {v}
@@ -1447,13 +1403,13 @@ export default function App() {
                           </div>
 
                           <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                            <div className="label">{tx("法院", "Court")}</div>
+                            <div className="label">Court</div>
                             <select
                               className="select"
                               value={(filters.sensorQuery ?? "").trim()}
                               onChange={(e) => setFilters({ ...filters, sensorQuery: e.target.value })}
                             >
-                              <option value="">{tx("（全部）", "(All)")}</option>
+                              <option value="">(All)</option>
                               {quickOptions.courts.map((v) => (
                                 <option key={v} value={v}>
                                   {v}
@@ -1463,13 +1419,13 @@ export default function App() {
                           </div>
 
                           <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                            <div className="label">{tx("结果", "Outcome")}</div>
+                            <div className="label">Outcome</div>
                             <select
                               className="select"
                               value={(filters.annotationQuery ?? "").trim()}
                               onChange={(e) => setFilters({ ...filters, annotationQuery: e.target.value })}
                             >
-                              <option value="">{tx("（全部）", "(All)")}</option>
+                              <option value="">(All)</option>
                               {quickOptions.outcomes.map((v) => (
                                 <option key={v} value={v}>
                                   {v}
@@ -1480,7 +1436,7 @@ export default function App() {
                         </div>
 
                         <details className="details-block">
-                          <summary className="details-summary">{tx("高级筛选", "Advanced filters")}</summary>
+                          <summary className="details-summary">Advanced filters</summary>
                           <div style={{ height: 10 }} />
                           <FiltersPanel disabled={false} filters={filters} setFilters={(next) => setFilters(next)} onReset={() => setFilters(defaultFilters())} />
                         </details>
@@ -1525,7 +1481,7 @@ export default function App() {
                   {demoMode ? <span className="pill">{t("misc.demoMode")}</span> : null}
                   {filters.focusCell ? (
                     <button className="btn danger small" onClick={() => setFilters({ ...filters, focusCell: undefined })}>
-                      {tx("清除聚焦", "Clear focus")}
+                      Clear focus
                     </button>
                   ) : null}
                 </div>
@@ -1536,10 +1492,10 @@ export default function App() {
 	                  <div className="row split" style={{ paddingBottom: 10, gap: 10, flexWrap: "wrap" }}>
 	                    <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
 	                      <button className={`btn small ${view === "network" ? "primary" : ""}`} onClick={() => setView("network")}>
-	                        {tx("网络", "Network")}
+	                        Network
 	                      </button>
 	                      <button className={`btn small ${view === "table" ? "primary" : ""}`} onClick={() => setView("table")}>
-	                        {tx("表格", "Table")}
+	                        Table
 	                      </button>
 		                    </div>
 		                    <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
@@ -1555,14 +1511,14 @@ export default function App() {
 
 	                      {selectedPair?.sender && selectedPair?.receiver ? (
 	                        <span className="pill">
-	                          {tx("已选边：", "Selected:")} {selectedPair.sender} → {selectedPair.receiver}
+	                          Selected: {selectedPair.sender} → {selectedPair.receiver}
 	                        </span>
 	                      ) : selectedCell ? (
 	                        <span className="pill">
-	                          {tx("已选律所：", "Selected:")} {selectedCell}
+	                          Selected: {selectedCell}
 	                        </span>
 	                      ) : (
-	                        <span className="pill">{tx("请选择律所/边", "Select a firm/edge")}</span>
+	                        <span className="pill">Select a firm/edge</span>
 	                      )}
 
 		                      {view === "network" ? (
@@ -1591,27 +1547,27 @@ export default function App() {
 	                  <div className="row split" style={{ paddingBottom: 10, gap: 10, flexWrap: "wrap" }}>
 	                    <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
 	                      <button className={`btn small ${view === "matrix" ? "primary" : ""}`} onClick={() => setView("matrix")}>
-	                        {tx("矩阵", "Matrix")}
+	                        Matrix
 	                      </button>
 	                      {view === "matrix" ? (
 	                        <>
-	                          <span className="pill">{tx("模式", "Mode")}</span>
+	                          <span className="pill">Mode</span>
 	                          <button className={`btn small ${matrixMode === "heat" ? "primary" : ""}`} onClick={() => setMatrixMode("heat")}>
-	                            {tx("热力", "Heat")}
+	                            Heat
 	                          </button>
 	                          <button className={`btn small ${matrixMode === "dot" ? "primary" : ""}`} onClick={() => setMatrixMode("dot")}>
-	                            {tx("点图", "Dot")}
+	                            Dot
 	                          </button>
 	                        </>
 	                      ) : null}
 	                      <button className={`btn small ${view === "fit" ? "primary" : ""}`} onClick={() => setView("fit")}>
-	                        {tx("实时拟合", "Fit")}
+	                        Fit
 	                      </button>
                       <button className={`btn small ${view === "whatif" ? "primary" : ""}`} onClick={() => setView("whatif")}>
-                        {tx("反事实", "What-if")}
+                        What-if
                       </button>
 	                      <button className={`btn small ${view === "compare" ? "primary" : ""}`} onClick={() => setView("compare")}>
-	                        {tx("对比", "Compare")}
+	                        Compare
 	                      </button>
 	                      <button className={`btn small ${view === "llm" ? "primary" : ""}`} onClick={() => setView("llm")}>
 	                        LLM
@@ -1621,19 +1577,17 @@ export default function App() {
                   </div>
                 ) : null}
 
-                <ErrorBoundary title={tx("可视化区域渲染失败（已拦截）", "Visualization render failed (caught)")} resetKey={view} lang={lang}>
+                <ErrorBoundary title="Visualization render failed (caught)" resetKey={view}>
                   {view === "matters" ? (
                     <div className="viz-scroll">
                       {selectedMatterId ? (
                         <MatterWorkspace
                           matterId={selectedMatterId}
-                          lang={lang}
                           onBack={() => setSelectedMatterId(null)}
                           onShowToast={showToast}
                         />
                       ) : (
                         <MatterList
-                          lang={lang}
                           onSelectMatter={(matter) => setSelectedMatterId(matter.id)}
                           onCreateMatter={() => setCreateMatterOpen(true)}
                         />
@@ -1664,7 +1618,7 @@ export default function App() {
                     ) : (
                       <div className="viz-scroll">
                         <InsightsPanel
-                          title={tx("单样本自动摘要 / QC", "Single-dataset summary / QC")}
+                          title="Single-dataset summary / QC"
                           fileLabel="single-insights"
                           insights={singleInsights}
                           onApplyRecommendations={applyFilterPatch}
@@ -1680,7 +1634,7 @@ export default function App() {
                     )
                   ) : view === "llm" ? (
                     <div className="viz-scroll">
-                      <ErrorBoundary title={tx("LLM 面板渲染失败（已拦截）", "LLM panel render failed (caught)")} resetKey="llm" lang={lang}>
+                      <ErrorBoundary title="LLM panel render failed (caught)" resetKey="llm">
                         <LlmPanel />
                       </ErrorBoundary>
                     </div>
@@ -1786,11 +1740,10 @@ export default function App() {
 
       <CreateMatterModal
         open={createMatterOpen}
-        lang={lang}
         onClose={() => setCreateMatterOpen(false)}
         onCreated={(matter) => {
           setSelectedMatterId(matter.id);
-          showToast(tx(`案件已创建: ${matter.name}`, `Matter created: ${matter.name}`));
+          showToast(`Matter created: ${matter.name}`);
         }}
       />
 
@@ -1863,16 +1816,16 @@ export default function App() {
 	        onExport={exportReport}
 	      />
         {isEmbedded && pipelineOpen ? (
-          <div className="pipeline-overlay" role="dialog" aria-modal="true" aria-label={tx("控制台", "Console")}>
+          <div className="pipeline-overlay" role="dialog" aria-modal="true" aria-label="Console">
             <button className="pipeline-overlay-backdrop" type="button" aria-label="Close" onClick={() => setPipelineOpen(false)} />
             <div className="pipeline-overlay-panel">
               <div className="pipeline-overlay-head">
                 <div>
-                  <div className="pipeline-overlay-title">{tx("控制台", "Console")}</div>
-                  <div className="pipeline-overlay-sub">{tx("导入 · 优化 · 过滤（无需额外配置）", "Data · Optimize · Filters (no extra setup)")}</div>
+                  <div className="pipeline-overlay-title">Console</div>
+                  <div className="pipeline-overlay-sub">Data · Optimize · Filters (no extra setup)</div>
                 </div>
                 <button className="btn small" type="button" onClick={() => setPipelineOpen(false)}>
-                  {tx("关闭", "Close")}
+                  Close
                 </button>
               </div>
               <div style={{ marginTop: 12 }}>
@@ -1881,14 +1834,14 @@ export default function App() {
                     <div className={`pipeline-badge ${view === "compare" ? (cmpA.events && cmpB.events ? "done" : "") : events ? "done" : ""}`}>1</div>
                     <div className="pipeline-body">
                       <div className="pipeline-stage">
-                        <div className="pipeline-stage-name">{tx("导入数据", "Data")}</div>
-                        <div className="pipeline-stage-meta">{tx("上传 CSV/TSV，系统自动规范化", "Upload CSV/TSV; auto-normalize")}</div>
+                        <div className="pipeline-stage-name">Data</div>
+                        <div className="pipeline-stage-meta">Upload CSV/TSV; auto-normalize</div>
                       </div>
                       <div className="card pad">
                         {view === "compare" ? (
                           <div style={{ display: "grid", gap: 14 }}>
                             <div>
-                              <div className="pill">{tx("数据集 A", "Dataset A")}</div>
+                              <div className="pill">Dataset A</div>
                               <div style={{ height: 8 }} />
                               <FileImport
                                 onLoaded={({ rawRows, columnMapping, fileName }) => {
@@ -1899,7 +1852,7 @@ export default function App() {
                                     rows: rawRows,
                                     mapping: columnMapping,
                                     events: ev,
-                                    warnings: summarizeWarnings(report, columnMapping, lang),
+                                    warnings: summarizeWarnings(report, columnMapping),
                                   });
                                 }}
                                 onError={(msg) => setError(msg)}
@@ -1916,7 +1869,7 @@ export default function App() {
                               ) : null}
                             </div>
                             <div>
-                              <div className="pill">{tx("数据集 B", "Dataset B")}</div>
+                              <div className="pill">Dataset B</div>
                               <div style={{ height: 8 }} />
                               <FileImport
                                 onLoaded={({ rawRows, columnMapping, fileName }) => {
@@ -1927,7 +1880,7 @@ export default function App() {
                                     rows: rawRows,
                                     mapping: columnMapping,
                                     events: ev,
-                                    warnings: summarizeWarnings(report, columnMapping, lang),
+                                    warnings: summarizeWarnings(report, columnMapping),
                                   });
                                 }}
                                 onError={(msg) => setError(msg)}
@@ -1951,19 +1904,19 @@ export default function App() {
                                 <div>
                                   <div style={{ fontWeight: 850 }}>
                                     {datasetInfo?.name
-                                      ? tx(`已注入：${datasetInfo.name}`, `Injected: ${datasetInfo.name}`)
-                                      : tx("正在加载示例数据…", "Loading sample dataset…")}
+                                      ? `Injected: ${datasetInfo.name}`
+                                      : "Loading sample dataset…"}
                                   </div>
                                   <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                                    {datasetInfo?.rows ? `${datasetInfo.rows.toLocaleString()} ${tx("行", "rows")}` : tx("无需操作，直接开始探索即可。", "No action needed — start exploring.")}
+                                    {datasetInfo?.rows ? `${datasetInfo.rows.toLocaleString()} ${"rows"}` : "No action needed — start exploring."}
                                   </div>
                                 </div>
-                                <span className={`pill ${datasetInfo?.name ? "success" : ""}`}>{datasetInfo?.source?.startsWith?.("preset:") ? tx("预设", "Preset") : tx("示例", "Sample")}</span>
+                                <span className={`pill ${datasetInfo?.name ? "success" : ""}`}>{datasetInfo?.source?.startsWith?.("preset:") ? "Preset" : "Sample"}</span>
                               </div>
                             </div>
 
                             <div className="field" style={{ gridTemplateColumns: "92px 1fr", marginTop: 10 }}>
-                              <div className="label">{tx("切换预设", "Switch preset")}</div>
+                              <div className="label">Switch preset</div>
                               <select
                                 className="select"
                                 value={consolePreset}
@@ -1975,14 +1928,14 @@ export default function App() {
                               >
                                 {consolePresets.map((p) => (
                                   <option key={p.value} value={p.value}>
-                                    {lang === "en" ? p.en : p.zh}
+                                    {p.label}
                                   </option>
                                 ))}
                               </select>
                             </div>
 
                             <details className="details-block" style={{ marginTop: 10 }}>
-                              <summary className="details-summary">{tx("替换数据 / 查看映射", "Replace dataset / mapping")}</summary>
+                              <summary className="details-summary">Replace dataset / mapping</summary>
                               <div style={{ height: 10 }} />
                               <FileImport
                                 onLoaded={({ rawRows, columnMapping, fileName }) => {
@@ -1996,8 +1949,8 @@ export default function App() {
                                   setEvents(ev);
                                   setDatasetMode("full");
                                   setSmoothStats(null);
-                                  setDatasetInfo({ name: fileName || tx("已导入数据", "Imported dataset"), source: "import", rows: rawRows?.length ?? 0 });
-                                  setImportWarnings(summarizeWarnings(report, columnMapping, lang));
+                                  setDatasetInfo({ name: fileName || "Imported dataset", source: "import", rows: rawRows?.length ?? 0 });
+                                  setImportWarnings(summarizeWarnings(report, columnMapping));
                                   setFilters((prev) => {
                                     const base = { ...defaultFilters(), ...(initial.filters ?? {}) };
                                     return { ...base, includeSelfLoops: prev.includeSelfLoops };
@@ -2033,45 +1986,45 @@ export default function App() {
                     <div className={`pipeline-badge ${datasetMode === "smooth" ? "done" : ""}`}>2</div>
                     <div className="pipeline-body">
                       <div className="pipeline-stage">
-                        <div className="pipeline-stage-name">{tx("性能优化", "Performance")}</div>
-                        <div className="pipeline-stage-meta">{tx("大数据自动建议“丝滑模式”", "Auto-suggest smoothing for large data")}</div>
+                        <div className="pipeline-stage-name">Performance</div>
+                        <div className="pipeline-stage-meta">Auto-suggest smoothing for large data</div>
                       </div>
                       <div className="card pad">
                         {datasetProfile ? (
                           <>
                             <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                               <span className="pill">
-                                {datasetProfile.rows.toLocaleString()} {tx("行", "rows")}
+                                {datasetProfile.rows.toLocaleString()} rows
                               </span>
                               <span className="pill">
-                                {datasetProfile.firms.toLocaleString()} {tx("律所", "firms")}
+                                {datasetProfile.firms.toLocaleString()} firms
                               </span>
                               <span className="pill">
-                                {datasetProfile.edges.toLocaleString()} {tx("对抗边", "edges")}
+                                {datasetProfile.edges.toLocaleString()} edges
                               </span>
-                              {datasetMode === "smooth" ? <span className="pill success">{tx("已优化", "Optimized")}</span> : null}
-                              {perfNeedsSmoothing && datasetMode !== "smooth" ? <span className="pill warn">{tx("建议优化", "Optimize recommended")}</span> : null}
+                              {datasetMode === "smooth" ? <span className="pill success">Optimized</span> : null}
+                              {perfNeedsSmoothing && datasetMode !== "smooth" ? <span className="pill warn">Optimize recommended</span> : null}
                             </div>
                             <div className="row" style={{ marginTop: 10, gap: 8, flexWrap: "wrap" }}>
                               {datasetMode !== "smooth" ? (
                                 <button className="btn small primary" type="button" onClick={applySmoothMode} disabled={!eventsAll?.length}>
-                                  {tx("一键优化（推荐）", "Optimize (recommended)")}
+                                  Optimize (recommended)
                                 </button>
                               ) : (
                                 <button className="btn small" type="button" onClick={applyFullMode} disabled={!eventsAll?.length}>
-                                  {tx("切回全量", "Use full")}
+                                  Use full
                                 </button>
                               )}
                               {smoothStats ? (
                                 <span className="muted" style={{ fontSize: 12 }}>
-                                  {tx("保留", "Kept")} {smoothStats.keptFirms.toLocaleString()} {tx("律所", "firms")} · {smoothStats.keptEdges.toLocaleString()} {tx("边", "edges")}
+                                  Kept {smoothStats.keptFirms.toLocaleString()} firms · {smoothStats.keptEdges.toLocaleString()} edges
                                 </span>
                               ) : null}
                             </div>
                           </>
                         ) : (
                           <div className="muted" style={{ fontSize: 12 }}>
-                            {tx("导入数据后会自动评估并给出优化建议。", "Import data to get automatic performance recommendations.")}
+                            Import data to get automatic performance recommendations.
                           </div>
                         )}
                       </div>
@@ -2082,14 +2035,14 @@ export default function App() {
                     <div className={`pipeline-badge ${events ? "done" : ""}`}>3</div>
                     <div className="pipeline-body">
                       <div className="pipeline-stage">
-                        <div className="pipeline-stage-name">{tx("过滤与聚焦", "Filters")}</div>
-                        <div className="pipeline-stage-meta">{tx("更快获得清晰结论", "Get to a clear conclusion faster")}</div>
+                        <div className="pipeline-stage-name">Filters</div>
+                        <div className="pipeline-stage-meta">Get to a clear conclusion faster</div>
                       </div>
                       <div className="card pad">
                         <div style={{ display: "grid", gap: 10, opacity: consoleFiltersDisabled ? 0.6 : 1, pointerEvents: consoleFiltersDisabled ? "none" : "auto" }}>
                           <div style={{ display: "grid", gap: 10 }}>
                             <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                              <div className="label">{tx("聚焦律所", "Focus firm")}</div>
+                              <div className="label">Focus firm</div>
                               <select
                                 className="select"
                                 value={filters.focusCell ?? ""}
@@ -2099,7 +2052,7 @@ export default function App() {
                                   else setFilters({ ...filters, focusCell: v, focusMode: filters.focusMode || "any" });
                                 }}
                               >
-                                <option value="">{tx("（全部）", "(All)")}</option>
+                                <option value="">(All)</option>
                                 {quickOptions.focusFirms.map((f) => (
                                   <option key={f} value={f}>
                                     {f}
@@ -2110,27 +2063,27 @@ export default function App() {
 
                             {filters.focusCell ? (
                               <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                                <div className="label">{tx("聚焦模式", "Focus mode")}</div>
+                                <div className="label">Focus mode</div>
                                 <select
                                   className="select"
                                   value={filters.focusMode ?? "any"}
                                   onChange={(e) => setFilters({ ...filters, focusMode: e.target.value })}
                                 >
-                                  <option value="any">{tx("任意", "Any")}</option>
-                                  <option value="outgoing">{tx("作为原告", "As plaintiff")}</option>
-                                  <option value="incoming">{tx("作为被告", "As defendant")}</option>
+                                  <option value="any">Any</option>
+                                  <option value="outgoing">As plaintiff</option>
+                                  <option value="incoming">As defendant</option>
                                 </select>
                               </div>
                             ) : null}
 
                             <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                              <div className="label">{tx("案件类型", "Case type")}</div>
+                              <div className="label">Case type</div>
                               <select
                                 className="select"
                                 value={(filters.metaboliteQuery ?? "").trim()}
                                 onChange={(e) => setFilters({ ...filters, metaboliteQuery: e.target.value })}
                               >
-                                <option value="">{tx("（全部）", "(All)")}</option>
+                                <option value="">(All)</option>
                                 {quickOptions.caseTypes.map((v) => (
                                   <option key={v} value={v}>
                                     {v}
@@ -2140,13 +2093,13 @@ export default function App() {
                             </div>
 
                             <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                              <div className="label">{tx("法院", "Court")}</div>
+                              <div className="label">Court</div>
                               <select
                                 className="select"
                                 value={(filters.sensorQuery ?? "").trim()}
                                 onChange={(e) => setFilters({ ...filters, sensorQuery: e.target.value })}
                               >
-                                <option value="">{tx("（全部）", "(All)")}</option>
+                                <option value="">(All)</option>
                                 {quickOptions.courts.map((v) => (
                                   <option key={v} value={v}>
                                     {v}
@@ -2156,13 +2109,13 @@ export default function App() {
                             </div>
 
                             <div className="field" style={{ gridTemplateColumns: "92px 1fr" }}>
-                              <div className="label">{tx("结果", "Outcome")}</div>
+                              <div className="label">Outcome</div>
                               <select
                                 className="select"
                                 value={(filters.annotationQuery ?? "").trim()}
                                 onChange={(e) => setFilters({ ...filters, annotationQuery: e.target.value })}
                               >
-                                <option value="">{tx("（全部）", "(All)")}</option>
+                                <option value="">(All)</option>
                                 {quickOptions.outcomes.map((v) => (
                                   <option key={v} value={v}>
                                     {v}
@@ -2173,7 +2126,7 @@ export default function App() {
                           </div>
 
                           <details className="details-block">
-                            <summary className="details-summary">{tx("高级筛选", "Advanced filters")}</summary>
+                            <summary className="details-summary">Advanced filters</summary>
                             <div style={{ height: 10 }} />
                             <FiltersPanel disabled={false} filters={filters} setFilters={(next) => setFilters(next)} onReset={() => setFilters(defaultFilters())} />
                           </details>

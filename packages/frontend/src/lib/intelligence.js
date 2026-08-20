@@ -95,8 +95,6 @@ function densityStats(events) {
 
 export function buildSingleInsights(opts) {
   const events = Array.isArray(opts?.events) ? opts.events : [];
-  const isEn = String(opts?.lang) === "en";
-  const tx = (zh, en) => (isEn ? en : zh);
   const qc = [];
   const rec = {};
   const stats = {
@@ -106,26 +104,20 @@ export function buildSingleInsights(opts) {
     courts: countStats(events, (e) => e.sensor ?? ""),
   };
 
-  const weightLabel = tx("权重", "Weight");
+  const weightLabel = "Weight";
 
   if (stats.outcomes.hasAny && stats.outcomes.topShare > 0.85) {
     qc.push({
       level: "info",
-      title: tx("结果分布偏斜", "Outcome skew"),
-      detail: tx(
-        `单一结果占比 ${(stats.outcomes.topShare * 100).toFixed(1)}%。建议按 案件类型/法院 分层复核，避免整体结论被单一结果驱动。`,
-        `A single outcome accounts for ${(stats.outcomes.topShare * 100).toFixed(1)}%. Consider stratifying by case type/court to avoid global conclusions driven by one outcome.`,
-      ),
+      title: "Outcome skew",
+      detail: `A single outcome accounts for ${(stats.outcomes.topShare * 100).toFixed(1)}%. Consider stratifying by case type/court to avoid global conclusions driven by one outcome.`,
     });
   }
   if (stats.density.senders > 120 || stats.density.receivers > 120) {
     qc.push({
       level: "info",
-      title: tx("节点较多，建议降噪", "Too many nodes"),
-      detail: tx(
-        `原告/被告律所数量较多（${stats.density.senders}/${stats.density.receivers}）。建议降低 Top 边数或聚焦某个律所。`,
-        `Many plaintiff/defendant firms (${stats.density.senders}/${stats.density.receivers}). Consider lowering Top edges or focusing on a firm.`,
-      ),
+      title: "Too many nodes",
+      detail: `Many plaintiff/defendant firms (${stats.density.senders}/${stats.density.receivers}). Consider lowering Top edges or focusing on a firm.`,
     });
   }
 
@@ -139,17 +131,11 @@ export function buildSingleInsights(opts) {
   const topEdges = aggPairs(events).slice(0, 8);
 
   const summaryLines = [
-    tx(
-      `当前视图：rows=${stats.density.rows}, pairs=${stats.density.pairs}, senders=${stats.density.senders}, receivers=${stats.density.receivers}, density=${stats.density.density.toFixed(3)}`,
-      `View: rows=${stats.density.rows}, pairs=${stats.density.pairs}, senders=${stats.density.senders}, receivers=${stats.density.receivers}, density=${stats.density.density.toFixed(3)}`,
-    ),
-    tx(`权重口径：${weightLabel}`, `Weight: ${weightLabel}`),
+    `View: rows=${stats.density.rows}, pairs=${stats.density.pairs}, senders=${stats.density.senders}, receivers=${stats.density.receivers}, density=${stats.density.density.toFixed(3)}`,
+    `Weight: ${weightLabel}`,
     stats.outcomes.hasAny
-      ? tx(
-          `结果：Top=${stats.outcomes.rows[0]?.key} (${(stats.outcomes.topShare * 100).toFixed(1)}%)`,
-          `Outcome: Top=${stats.outcomes.rows[0]?.key} (${(stats.outcomes.topShare * 100).toFixed(1)}%)`,
-        )
-      : tx("结果：NA（未提供）", "Outcome: NA (missing)"),
+      ? `Outcome: Top=${stats.outcomes.rows[0]?.key} (${(stats.outcomes.topShare * 100).toFixed(1)}%)`
+      : "Outcome: NA (missing)",
   ];
 
   return {
@@ -167,8 +153,6 @@ export function buildCompareInsights(opts) {
   const eventsB = Array.isArray(opts?.eventsB) ? opts.eventsB : [];
   const diffRows = Array.isArray(opts?.diffRows) ? opts.diffRows : [];
   const annDiffRows = Array.isArray(opts?.annDiffRows) ? opts.annDiffRows : [];
-  const isEn = String(opts?.lang) === "en";
-  const tx = (zh, en) => (isEn ? en : zh);
   const qc = [];
   const rec = {};
   const densityA = densityStats(eventsA);
@@ -178,27 +162,21 @@ export function buildCompareInsights(opts) {
   const shared = diffRows.length - gained - lost;
   const total = diffRows.length || 1;
 
-  const weightLabel = tx("权重", "Weight");
+  const weightLabel = "Weight";
 
   if (densityA.rows < 50 || densityB.rows < 50) {
     qc.push({
       level: "warn",
-      title: tx("对比样本过小", "Small sample for compare"),
-      detail: tx(
-        `A/B 任一侧 rows 过少（A=${densityA.rows}, B=${densityB.rows}），差异网络可能不稳定。建议放宽过滤或检查导入口径。`,
-        `One side has too few rows (A=${densityA.rows}, B=${densityB.rows}); the delta network may be unstable. Consider loosening filters or checking import settings.`,
-      ),
+      title: "Small sample for compare",
+      detail: `One side has too few rows (A=${densityA.rows}, B=${densityB.rows}); the delta network may be unstable. Consider loosening filters or checking import settings.`,
     });
   }
 
   if ((gained + lost) / total > 0.85 && total >= 100) {
     qc.push({
       level: "info",
-      title: tx("A/B 共享边偏少", "Few shared edges"),
-      detail: tx(
-        `当前筛选下 shared=${shared}（占比 ${((shared / total) * 100).toFixed(1)}%）。若 A/B 本应同口径，请检查列映射与过滤参数是否一致。`,
-        `Under current filters, shared=${shared} (${((shared / total) * 100).toFixed(1)}%). If A/B should be comparable, check that mapping and filters match.`,
-      ),
+      title: "Few shared edges",
+      detail: `Under current filters, shared=${shared} (${((shared / total) * 100).toFixed(1)}%). If A/B should be comparable, check that mapping and filters match.`,
     });
   }
 
@@ -206,16 +184,10 @@ export function buildCompareInsights(opts) {
   rec.topEdges = Math.max(densityA.pairs, densityB.pairs) > 800 ? 300 : 500;
 
   const summaryLines = [
-    tx(
-      `A：rows=${densityA.rows}, pairs=${densityA.pairs}, senders=${densityA.senders}, receivers=${densityA.receivers}`,
-      `A: rows=${densityA.rows}, pairs=${densityA.pairs}, senders=${densityA.senders}, receivers=${densityA.receivers}`,
-    ),
-    tx(
-      `B：rows=${densityB.rows}, pairs=${densityB.pairs}, senders=${densityB.senders}, receivers=${densityB.receivers}`,
-      `B: rows=${densityB.rows}, pairs=${densityB.pairs}, senders=${densityB.senders}, receivers=${densityB.receivers}`,
-    ),
-    tx(`差异：total=${diffRows.length}, gained=${gained}, lost=${lost}`, `Delta: total=${diffRows.length}, gained=${gained}, lost=${lost}`),
-    tx(`权重口径：${weightLabel}`, `Weight: ${weightLabel}`),
+    `A: rows=${densityA.rows}, pairs=${densityA.pairs}, senders=${densityA.senders}, receivers=${densityA.receivers}`,
+    `B: rows=${densityB.rows}, pairs=${densityB.pairs}, senders=${densityB.senders}, receivers=${densityB.receivers}`,
+    `Delta: total=${diffRows.length}, gained=${gained}, lost=${lost}`,
+    `Weight: ${weightLabel}`,
   ];
 
   const topUp = [...diffRows].sort((a, b) => b.delta - a.delta).slice(0, 8);
@@ -231,41 +203,39 @@ export function buildCompareInsights(opts) {
   };
 }
 
-export function toMarkdown(insights, title = "Outcome-Based Law Firm Insights", lang) {
-  const isEn = String(lang) === "en";
-  const tx = (zh, en) => (isEn ? en : zh);
+export function toMarkdown(insights, title = "Outcome-Based Law Firm Insights") {
   const lines = [];
   lines.push(`# ${title}`);
   lines.push("");
-  lines.push(`## ${tx("摘要", "Summary")}`);
+  lines.push(`## ${"Summary"}`);
   for (const l of insights.summaryLines ?? []) lines.push(`- ${l}`);
   lines.push("");
-  lines.push(`## ${tx("质量检查", "QC")}`);
-  if (!insights.qc?.length) lines.push(`- ${tx("无显著问题", "No issues")}`);
+  lines.push(`## ${"QC"}`);
+  if (!insights.qc?.length) lines.push(`- ${"No issues"}`);
   else for (const q of insights.qc) lines.push(`- [${q.level}] ${q.title}: ${q.detail}`);
   lines.push("");
 
   if (insights.kind === "single") {
-    lines.push(`## ${tx("Top", "Top")}`);
+    lines.push(`## ${"Top"}`);
     const top = insights.top ?? {};
     const fmtRow = (r) => `- ${r.key} (w=${r.weight.toFixed(2)}, n=${r.count})`;
-    lines.push(`### ${tx("Top 原告律所", "Top plaintiff firms")}`);
+    lines.push(`### ${"Top plaintiff firms"}`);
     for (const r of top.topSenders ?? []) lines.push(`- ${r.id} (out=${r.outWeight.toFixed(2)}, n=${r.outCount})`);
-    lines.push(`### ${tx("Top 被告律所", "Top defendant firms")}`);
+    lines.push(`### ${"Top defendant firms"}`);
     for (const r of top.topReceivers ?? []) lines.push(`- ${r.id} (in=${r.inWeight.toFixed(2)}, n=${r.inCount})`);
-    lines.push(`### ${tx("Top 案件类型", "Top case types")}`);
+    lines.push(`### ${"Top case types"}`);
     for (const r of top.topMet ?? []) lines.push(fmtRow(r));
-    lines.push(`### ${tx("Top 法院", "Top courts")}`);
+    lines.push(`### ${"Top courts"}`);
     for (const r of top.topSens ?? []) lines.push(fmtRow(r));
-    lines.push(`### ${tx("Top 边（聚合）", "Top edges (aggregated)")}`);
+    lines.push(`### ${"Top edges (aggregated)"}`);
     for (const r of top.topEdges ?? []) lines.push(`- ${r.sender} → ${r.receiver} (w=${r.weight.toFixed(2)}, n=${r.count})`);
   } else {
-    lines.push(`## ${tx("对比 Top Δ", "Compare Top Δ")}`);
-    lines.push(`### ${tx("Top 上升（B-A）", "Top increased (B-A)")}`);
+    lines.push(`## ${"Compare Top Δ"}`);
+    lines.push(`### ${"Top increased (B-A)"}`);
     for (const r of insights.top?.topUp ?? []) lines.push(`- ${r.sender} → ${r.receiver} (Δ=${r.delta.toFixed(2)})`);
-    lines.push(`### ${tx("Top 下降（B-A）", "Top decreased (B-A)")}`);
+    lines.push(`### ${"Top decreased (B-A)"}`);
     for (const r of insights.top?.topDown ?? []) lines.push(`- ${r.sender} → ${r.receiver} (Δ=${r.delta.toFixed(2)})`);
-    lines.push(`### ${tx("按结果", "By Outcome")}`);
+    lines.push(`### ${"By Outcome"}`);
     for (const r of insights.top?.annDiffRows ?? []) lines.push(`- ${r.key} (Δ=${r.delta.toFixed(2)})`);
   }
 

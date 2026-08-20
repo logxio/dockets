@@ -10,11 +10,10 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
-    {name = "Alexandre Mojon", email = "alexandre.mojon@unisg.ch"},
-    {name = "Robert Mahari", email = "rmahari@mit.edu"},
+    {name = "Yan Su", email = "hi@yansu.me"},
 ]
 maintainers = [
-    {name = "Legal Intelligence Platform Team"},
+    {name = "Yan Su", email = "hi@yansu.me"},
 ]
 keywords = [
     "ranking",
@@ -51,10 +50,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/legal-intelligence-platform"
-Documentation = "https://github.com/your-org/legal-intelligence-platform#readme"
-Repository = "https://github.com/your-org/legal-intelligence-platform"
-Issues = "https://github.com/your-org/legal-intelligence-platform/issues"
+Homepage = "https://github.com/logxio/dockets"
+Documentation = "https://github.com/logxio/dockets/tree/main/packages/ahpi"
+Repository = "https://github.com/logxio/dockets"
+Issues = "https://github.com/logxio/dockets/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["ahpi"]

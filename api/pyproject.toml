@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
-    {name = "Legal Intelligence Platform Team"},
+    {name = "Yan Su", email = "hi@yansu.me"},
 ]
 keywords = [
     "fastapi",
@@ -50,8 +50,11 @@ dev = [
 legal-api = "app.main:run"
 
 [project.urls]
-Homepage = "https://github.com/your-org/legal-intelligence-platform"
-Documentation = "https://github.com/your-org/legal-intelligence-platform/tree/main/api"
+Homepage = "https://github.com/logxio/dockets"
+Documentation = "https://github.com/logxio/dockets/tree/main/api"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
