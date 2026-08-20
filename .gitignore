@@ -38,3 +38,6 @@ pnpm-debug.log*
 # Deploy
 .vercel
 .netlify
+
+# handoff notes, quote removed content verbatim, never committed
+MIGRATION-STATUS.md
